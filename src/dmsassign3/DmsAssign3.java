@@ -73,18 +73,21 @@ public class DmsAssign3 {
         main.add(p1);
         
         hostbutton.addActionListener(new ActionListener() {
+            @Override
             public void actionPerformed(ActionEvent e){
                 Host host = new Host(true, null);
             }
         });
         
         connectbutton.addActionListener(new ActionListener() {
+            @Override
             public void actionPerformed(ActionEvent e){
                 Host host = new Host(false, ipfield.getText());
             }
         });
         
         exitbutton.addActionListener(new ActionListener() {
+            @Override
             public void actionPerformed(ActionEvent e){
                 System.exit(0);
             }

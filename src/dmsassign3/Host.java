@@ -11,7 +11,9 @@ import java.awt.GridBagLayout;
 import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.net.InetAddress;
 import java.net.MalformedURLException;
+import java.net.UnknownHostException;
 import java.rmi.AccessException;
 import java.rmi.Naming;
 import java.rmi.NotBoundException;
@@ -19,6 +21,7 @@ import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
 import java.rmi.server.UnicastRemoteObject;
+import java.util.ArrayList;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.JButton;
@@ -26,6 +29,8 @@ import javax.swing.JFrame;
 import static javax.swing.JFrame.EXIT_ON_CLOSE;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
+import javax.swing.JTextArea;
+import javax.swing.Timer;
 
 /**
  *
@@ -33,10 +38,13 @@ import javax.swing.JPanel;
  */
 public class Host {
 
+    RMIBooking rObject;
+    
     JFrame frame = new JFrame();
 
     JPanel p1 = new JPanel(new GridBagLayout());
     JPanel container = new JPanel();
+    JTextArea bookingView = new JTextArea();
 
     JButton add = new JButton("Add");
     JLabel bookings = new JLabel("Bookings");
@@ -44,31 +52,6 @@ public class Host {
     GridBagConstraints gbc = new GridBagConstraints();
 
     public Host(boolean isServer, String ip) {
-
-        gbc.insets = new Insets(15, 15, 15, 15);
-        container.setLayout(layout);
-
-        gbc.gridx = 1;
-        gbc.gridy = 1;
-        p1.add(add, gbc);
-        gbc.gridx = 1;
-        gbc.gridy = 2;
-        p1.add(bookings, gbc);
-
-        container.add(p1);
-
-        add.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                Add add = new Add();
-            }
-        });
-
-        frame.setSize(400, 400);
-        frame.add(container);
-        frame.setVisible(true);
-        frame.setResizable(false);
-        frame.setDefaultCloseOperation(EXIT_ON_CLOSE);
 
         if(isServer)
         {                
@@ -79,7 +62,69 @@ public class Host {
         {
             boolean successful = connectRMI(ip);
         }
+        
+        gbc.insets = new Insets(15, 15, 15, 15);
+        container.setLayout(layout);
 
+        gbc.gridx = 1;
+        gbc.gridy = 1;
+        p1.add(add, gbc);
+        gbc.gridx = 1;
+        gbc.gridy = 2;
+        p1.add(bookings, gbc);
+        gbc.gridx = 1;
+        gbc.gridy = 3;
+        p1.add(bookingView, gbc);
+        
+        
+        container.add(p1);
+
+        add.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {                
+                // Attempt to add the booking
+                Add add = new Add(rObject);
+                
+                
+            }
+        });
+
+        frame.setSize(400, 400);
+        frame.add(container);
+        frame.setVisible(true);
+        frame.setResizable(false);
+        frame.setDefaultCloseOperation(EXIT_ON_CLOSE);
+
+
+        Timer timer = new Timer(1000, new ActionListener() {
+
+            @Override
+            public void actionPerformed(ActionEvent ae) {
+                updateBookings();
+            }
+        });
+        timer.setInitialDelay(500);
+        timer.start(); 
+   }
+    
+    private void updateBookings()
+    {                
+                ArrayList<Booking> bookings = null;
+                try {
+                    // Update the bookings
+                    bookings = rObject.getBookings();
+                } catch (RemoteException ex) {
+                    Logger.getLogger(Host.class.getName()).log(Level.SEVERE, null, ex);
+                }
+                String result = "";
+                for(int i = 0; i < bookings.size(); ++i)
+                {
+                    result += bookings.get(i).toString()+"\n";
+                }
+                InetAddress thisIp;
+
+                
+                bookingView.setText(result);        
     }
 
     private boolean connectRMI(String ip) {
@@ -90,8 +135,8 @@ public class Host {
             Registry registry = LocateRegistry.getRegistry(ip);
             RMIBooking remoteProxy
                     = (RMIBooking) registry.lookup("greeting");
-            System.out.println("Greeting is "
-                    + remoteProxy.getGreeting());
+            System.out.println("Client is up");
+            rObject = remoteProxy;
             
             successful = true;
         } catch (RemoteException ex) {
@@ -122,6 +167,7 @@ public class Host {
                 }
 
                 successful = true;
+                rObject = stub;
             } catch (MalformedURLException e) {
                 System.err.println("Unable to see names: " + e);
             }

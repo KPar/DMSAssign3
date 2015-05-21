@@ -26,6 +26,7 @@ public class RMIBookingImpl implements RMIBooking
     @Override
     public void addBooking(String date, String name, int id) throws RemoteException {
         bookings.add(new Booking(date,name,id));
+        System.out.println("Added Booking");
         
     }
         

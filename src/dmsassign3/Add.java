@@ -9,6 +9,11 @@ import java.awt.FlowLayout;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.rmi.RemoteException;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JFrame;
@@ -22,6 +27,7 @@ import javax.swing.JTextField;
  * @author Ken
  */
 public class Add {
+    RMIBooking booking;
     
     String[] capacity = {"1","2","3","4","5","6+"};
     
@@ -45,7 +51,8 @@ public class Add {
     FlowLayout layout = new FlowLayout();
     GridBagConstraints gbc = new GridBagConstraints();
     
-    public Add() {
+    public Add(RMIBooking rObject) {
+        booking = rObject;
         gbc.insets = new Insets(5,0,0,0); 
         container.setLayout(layout);
         
@@ -87,12 +94,28 @@ public class Add {
         
        container.add(p1);
        
+       submit.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                addBooking();
+            }
+        });
+       
        frame.setSize(400,400);
        frame.add(container);
        frame.setVisible(true);
        frame.setResizable(true);
        frame.setDefaultCloseOperation(EXIT_ON_CLOSE);
         
+    }
+    
+    public void addBooking()
+    {
+        try {
+            booking.addBooking(nameLabel.getText(), checkindate.getText(), 1);
+        } catch (RemoteException ex) {
+            Logger.getLogger(Add.class.getName()).log(Level.SEVERE, null, ex);
+        }
     }
     
 }
