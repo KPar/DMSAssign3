@@ -20,6 +20,7 @@ import java.net.MalformedURLException;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.SocketTimeoutException;
+import java.net.UnknownHostException;
 import java.rmi.Naming;
 import java.rmi.NotBoundException;
 import java.rmi.RemoteException;
@@ -61,6 +62,8 @@ public class Host {
     JPanel p1 = new JPanel(new GridBagLayout());
     JPanel container = new JPanel();
     JTextArea bookingView = new JTextArea();
+    JTextArea systemip = new JTextArea();
+    JLabel hostip = new JLabel("Host IP");
 
     JButton add = new JButton("Add");
     JLabel bookingsLabel = new JLabel("Bookings");
@@ -78,9 +81,10 @@ public class Host {
     private Peer thisPeer = null;
 
     public Host(boolean isServer, String ip) {
+        
 
         this.isServer = isServer;
-        ourIP = "127.0.0.1";    // We need to change this to represent the outbound
+        ourIP = "192.168.1.11";    // We need to change this to represent the outbound
         // network adapter IP
         if (isServer) {
             // Try to create the RMI object
@@ -89,7 +93,7 @@ public class Host {
             processID = 0;
             boolean successful = initRMI();
             boolean tcpSuccessful = initTCPServ();
-            leaderIP = "127.0.0.1";
+            leaderIP = "192.168.1.11";
             // Add ourselfs to our own peer array
             peers.add(new Peer(leaderIP, String.valueOf(SERVER_TCP_PORT), processID, true));
 
@@ -105,12 +109,9 @@ public class Host {
                 boolean tcpSuccessful = initTCPServ();
             }
         }
-        
-        updateBookings();
 
         gbc.insets = new Insets(15, 15, 15, 15);
         container.setLayout(layout);
-
         gbc.gridx = 1;
         gbc.gridy = 1;
         p1.add(add, gbc);
@@ -137,7 +138,7 @@ public class Host {
         frame.setVisible(true);
         frame.setResizable(false);
         //frame.setDefaultCloseOperation(EXIT_ON_CLOSE);
-
+        
         // Create a timer that continiously checks connection to the main server      
         Timer checkingTimer = new Timer(1000, new ActionListener() {
 
@@ -153,15 +154,15 @@ public class Host {
         Timer updateTimer = new Timer(1000, new ActionListener() {
 
             @Override
-            public synchronized void actionPerformed(ActionEvent ae) {
+            public void actionPerformed(ActionEvent ae) {
                 updateBookings();
             }
         });
-        updateTimer.setInitialDelay(2000);
+        updateTimer.setInitialDelay(500);
         updateTimer.start();
     }
 
-    synchronized private void updateBookings() {
+    private synchronized void updateBookings() {
         try {
             // Update the bookings
             bookings = rObject.getBookings();
@@ -268,15 +269,33 @@ public class Host {
             successful = true;
         } catch (RemoteException | NotBoundException ex) {
             Logger.getLogger(Host.class.getName()).log(Level.SEVERE, null, ex);
-        } 
+        }
         return successful;
     }
 
     private boolean initRMI() {
         // This method creates a local RMI
+        
+        gbc.gridx = 1;
+        gbc.gridy = 0;
+        p1.add(hostip,gbc);
+        
+        gbc.gridx = 2;
+        gbc.gridy = 0;
+        p1.add(systemip);
+        
+        String ip;
         boolean successful = false;
         RMIBookingImpl remoteObject
                 = new RMIBookingImpl();
+        
+        try {
+            ip = InetAddress.getLocalHost().getHostAddress();
+            systemip.setText(ip);
+        } catch (UnknownHostException ex) {
+            Logger.getLogger(Host.class.getName()).log(Level.SEVERE, null, ex);
+        }
+
 
         try {  // create stub (note prior to Java 5.0 must use rmic utility)
             RMIBooking stub = (RMIBooking) UnicastRemoteObject.exportObject(remoteObject, 0);
@@ -388,9 +407,9 @@ public class Host {
             Socket socket = null;
 
             try {
-                socket = new Socket(peers.get(i).getIpAddress(), Integer.parseInt(peers.get(i).getPortNumber()));
+                socket = new Socket(peers.get(i).getIpAddress(), SERVER_TCP_PORT);
             } catch (IOException e) {
-                System.err.println("Client could not make connection to peer(" + peers.get(i).getIpAddress() + "): " + e);
+                System.err.println("Client could not make connection to peer(" + peers.get(i).toString() + "): " + e);
                 System.exit(-1);
             }
 
@@ -483,7 +502,7 @@ public class Host {
                 serverSocket = new ServerSocket(tcpPort);
                 serverSocket.setSoTimeout(2000); // timeout for accept
                 System.out.println("Server started at "
-                        + InetAddress.getLocalHost() + " on port " + tcpPort);
+                        + InetAddress.getLocalHost().getHostAddress() + " on port " + tcpPort);
             } catch (IOException e) {
                 System.err.println("Server can't listen on port: " + e);
                 System.exit(-1);
