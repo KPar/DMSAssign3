@@ -20,10 +20,10 @@ import java.net.MalformedURLException;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.SocketTimeoutException;
+import java.net.UnknownHostException;
 import java.rmi.Naming;
 import java.rmi.NotBoundException;
 import java.rmi.RemoteException;
-import java.rmi.UnknownHostException;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
 import java.rmi.server.UnicastRemoteObject;
@@ -81,19 +81,25 @@ public class Host {
     private Peer thisPeer = null;
 
     public Host(boolean isServer, String ip) {
-        
+        String localIP = null;
+        try {
+            localIP = InetAddress.getLocalHost().getHostAddress();
+            systemip.setText(ip);
+        } catch (UnknownHostException ex) {
+            Logger.getLogger(Host.class.getName()).log(Level.SEVERE, null, ex);
+        }
+
         this.isServer = isServer;
-        ourIP = "192.168.1.11";    // We need to change this to represent the outbound
+        ourIP = localIP;    // We need to change this to represent the outbound
         // network adapter IP
         if (isServer) {
             // Try to create the RMI object
             // Since this is the server create the RMI server and begin listing
             // for TCP and RMI requests.
-            System.setProperty( "java.rmi.server.hostname", "192.168.1.11" ) ;
             processID = 0;
             boolean successful = initRMI();
             boolean tcpSuccessful = initTCPServ();
-            leaderIP = "192.168.1.11";
+            leaderIP = ourIP;
             // Add ourselfs to our own peer array
             peers.add(new Peer(leaderIP, String.valueOf(SERVER_TCP_PORT), processID, true));
 
@@ -112,7 +118,6 @@ public class Host {
 
         gbc.insets = new Insets(15, 15, 15, 15);
         container.setLayout(layout);
-
         gbc.gridx = 1;
         gbc.gridy = 1;
         p1.add(add, gbc);
@@ -139,7 +144,7 @@ public class Host {
         frame.setVisible(true);
         frame.setResizable(false);
         //frame.setDefaultCloseOperation(EXIT_ON_CLOSE);
-        
+
         // Create a timer that continiously checks connection to the main server      
         Timer checkingTimer = new Timer(1000, new ActionListener() {
 
@@ -200,8 +205,7 @@ public class Host {
                 // the peer list, check if the peer is the leader if so initiate
                 // leader election
                 peers.remove(i);
-                if(p.isIsLeader())
-                {
+                if (p.isIsLeader()) {
                     // The disconnected peer was the leader initiate a leader election
                     // new LeaderElection().run();
                 }
@@ -214,20 +218,17 @@ public class Host {
                 // create a buffered input stream for this socket
                 br = new BufferedReader(new InputStreamReader(
                         socket.getInputStream()));
-                
+
                 // Send a PING message
-                String clientRequest = "PING";;                            
+                String clientRequest = "PING";;
                 pw.println(clientRequest);  // println flushes itself
                 // then get server response and display it
                 String serverResponse = br.readLine(); // blocking
 
                 System.out.println("PING Response: " + serverResponse);
-                if(serverResponse.equals("PONG"))
-                {
+                if (serverResponse.equals("PONG")) {
                     // Correct response from pinging server
-                }
-                else
-                {
+                } else {
                     // Incorrect response from pinging server
                 }
 
@@ -276,27 +277,26 @@ public class Host {
 
     private boolean initRMI() {
         // This method creates a local RMI
-        
+        System.setProperty( "java.rmi.server.hostname", ourIP) ;
         gbc.gridx = 1;
         gbc.gridy = 0;
-        p1.add(hostip,gbc);
-        
+        p1.add(hostip, gbc);
+
         gbc.gridx = 2;
         gbc.gridy = 0;
         p1.add(systemip);
-        
-        String ip = null;
+
+        String ip;
         boolean successful = false;
         RMIBookingImpl remoteObject
                 = new RMIBookingImpl();
-        
+
         try {
             ip = InetAddress.getLocalHost().getHostAddress();
-        } catch (java.net.UnknownHostException ex) {
+            systemip.setText(ip);
+        } catch (UnknownHostException ex) {
             Logger.getLogger(Host.class.getName()).log(Level.SEVERE, null, ex);
         }
-        systemip.setText(ip);
-
 
         try {  // create stub (note prior to Java 5.0 must use rmic utility)
             RMIBooking stub = (RMIBooking) UnicastRemoteObject.exportObject(remoteObject, 0);
