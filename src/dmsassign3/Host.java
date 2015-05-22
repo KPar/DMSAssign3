@@ -195,8 +195,7 @@ public class Host {
             // a peer they are remove from the peer list, if the disconnected
             // peer is the leader initiate a leader election.
             Peer p = peers.get(i);
-            if(p.equals(thisPeer))
-            {
+            if (p.equals(thisPeer)) {
                 // Don't bother PING'ing this peer since we obiously are still alive
                 continue;
             }
@@ -215,7 +214,7 @@ public class Host {
                     // The disconnected peer was the leader initiate a leader election
                     // new LeaderElection().run();
                 }
-                
+
                 continue;
             }
 
@@ -285,7 +284,7 @@ public class Host {
 
     private boolean initRMI() {
         // This method creates a local RMI
-        System.setProperty( "java.rmi.server.hostname", ourIP) ;
+        System.setProperty("java.rmi.server.hostname", ourIP);
         gbc.gridx = 1;
         gbc.gridy = 0;
         p1.add(hostip, gbc);
@@ -341,8 +340,12 @@ public class Host {
         try {
             socket = new Socket(ip, SERVER_TCP_PORT);
         } catch (IOException e) {
-            System.err.println("Client could not make connection: " + e);
-            System.exit(-1);
+            try {
+                socket = new Socket(ip, CLIENT_TCP_PORT);
+            } catch (IOException ee) {
+                System.err.println("Client could not make connection: " + ee);
+                System.exit(-1);
+            }
         }
 
         PrintWriter pw = null; // output stream to server
