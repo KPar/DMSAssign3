@@ -24,19 +24,19 @@ public class RMIBookingImpl implements RMIBooking
    }
    
     @Override
-    public void addBooking(String date, String name, int id) throws RemoteException {
+    public synchronized void addBooking(String date, String name, int id) throws RemoteException {
         bookings.add(new Booking(date,name,id));
         System.out.println("Added Booking");
         
     }
         
     @Override
-    public ArrayList<Booking> getBookings() throws RemoteException {
+    public synchronized ArrayList<Booking> getBookings() throws RemoteException {
         return bookings;
     }
 
     @Override
-    public void cancelBooking(int id) throws RemoteException {
+    public synchronized void cancelBooking(int id) throws RemoteException {
         for(int i = 0; i < bookings.size(); ++i)
         {
             if(bookings.get(i).id == id)
