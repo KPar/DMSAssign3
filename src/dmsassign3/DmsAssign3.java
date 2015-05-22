@@ -97,7 +97,7 @@ public class DmsAssign3 {
         frame.add(main);
         frame.setVisible(true);
         frame.setResizable(false);
-        frame.setDefaultCloseOperation(EXIT_ON_CLOSE);
+        //frame.setDefaultCloseOperation(EXIT_ON_CLOSE);
         
         
     }
