@@ -605,7 +605,7 @@ public class Host {
                     // Return the the client a string containing all the nodes
                     // in the system
                     for (int i = 0; i < peers.size(); ++i) {
-                        if (i == peers.size() - 2) {
+                        if (i == peers.size() - 1) {
                             response += peers.get(i);
                         } else {
                             response += peers.get(i) + ":";
