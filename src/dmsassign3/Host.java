@@ -105,6 +105,8 @@ public class Host {
                 boolean tcpSuccessful = initTCPServ();
             }
         }
+        
+        updateBookings();
 
         gbc.insets = new Insets(15, 15, 15, 15);
         container.setLayout(layout);
@@ -145,21 +147,21 @@ public class Host {
             }
         });
         checkingTimer.setInitialDelay(500);
-        checkingTimer.start();
+        //checkingTimer.start();
 
         // Create a timer that continiously updates the Booking list every second
         Timer updateTimer = new Timer(1000, new ActionListener() {
 
             @Override
-            public void actionPerformed(ActionEvent ae) {
+            public synchronized void actionPerformed(ActionEvent ae) {
                 updateBookings();
             }
         });
-        updateTimer.setInitialDelay(500);
+        updateTimer.setInitialDelay(2000);
         updateTimer.start();
     }
 
-    private void updateBookings() {
+    synchronized private void updateBookings() {
         try {
             // Update the bookings
             bookings = rObject.getBookings();
@@ -266,7 +268,7 @@ public class Host {
             successful = true;
         } catch (RemoteException | NotBoundException ex) {
             Logger.getLogger(Host.class.getName()).log(Level.SEVERE, null, ex);
-        }
+        } 
         return successful;
     }
 
@@ -386,9 +388,9 @@ public class Host {
             Socket socket = null;
 
             try {
-                socket = new Socket(peers.get(i).getIpAddress(), SERVER_TCP_PORT);
+                socket = new Socket(peers.get(i).getIpAddress(), Integer.parseInt(peers.get(i).getPortNumber()));
             } catch (IOException e) {
-                System.err.println("Client could not make connection to peer(" + peers.get(i).toString() + "): " + e);
+                System.err.println("Client could not make connection to peer(" + peers.get(i).getIpAddress() + "): " + e);
                 System.exit(-1);
             }
 
@@ -565,7 +567,7 @@ public class Host {
         }
 
         // Part of the TCPServer inner class
-        private String handleRequst(String request, String clientIP) {
+        private synchronized String handleRequst(String request, String clientIP) {
             // Handle Incomming TCP requests
             // Split the request into an array on the delimter ":"
             String response = "";
