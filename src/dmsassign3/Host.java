@@ -61,6 +61,8 @@ public class Host {
     JPanel p1 = new JPanel(new GridBagLayout());
     JPanel container = new JPanel();
     JTextArea bookingView = new JTextArea();
+    JTextArea systemip = new JTextArea();
+    JLabel hostip = new JLabel("Host IP");
 
     JButton add = new JButton("Add");
     JLabel bookingsLabel = new JLabel("Bookings");
@@ -78,6 +80,7 @@ public class Host {
     private Peer thisPeer = null;
 
     public Host(boolean isServer, String ip) {
+        
 
         this.isServer = isServer;
         ourIP = "192.168.1.11";    // We need to change this to represent the outbound
@@ -108,7 +111,6 @@ public class Host {
 
         gbc.insets = new Insets(15, 15, 15, 15);
         container.setLayout(layout);
-
         gbc.gridx = 1;
         gbc.gridy = 1;
         p1.add(add, gbc);
@@ -135,7 +137,7 @@ public class Host {
         frame.setVisible(true);
         frame.setResizable(false);
         //frame.setDefaultCloseOperation(EXIT_ON_CLOSE);
-
+        
         // Create a timer that continiously checks connection to the main server      
         Timer checkingTimer = new Timer(1000, new ActionListener() {
 
@@ -272,9 +274,27 @@ public class Host {
 
     private boolean initRMI() {
         // This method creates a local RMI
+        
+        gbc.gridx = 1;
+        gbc.gridy = 0;
+        p1.add(hostip,gbc);
+        
+        gbc.gridx = 2;
+        gbc.gridy = 0;
+        p1.add(systemip);
+        
+        String ip;
         boolean successful = false;
         RMIBookingImpl remoteObject
                 = new RMIBookingImpl();
+        
+        try {
+            ip = InetAddress.getLocalHost().getHostAddress();
+            systemip.setText(ip);
+        } catch (UnknownHostException ex) {
+            Logger.getLogger(Host.class.getName()).log(Level.SEVERE, null, ex);
+        }
+
 
         try {  // create stub (note prior to Java 5.0 must use rmic utility)
             RMIBooking stub = (RMIBooking) UnicastRemoteObject.exportObject(remoteObject, 0);
