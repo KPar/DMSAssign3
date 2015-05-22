@@ -80,7 +80,7 @@ public class Host {
     public Host(boolean isServer, String ip) {
 
         this.isServer = isServer;
-        ourIP = "127.0.0.1";    // We need to change this to represent the outbound
+        ourIP = "192.168.1.11";    // We need to change this to represent the outbound
         // network adapter IP
         if (isServer) {
             // Try to create the RMI object
@@ -89,7 +89,7 @@ public class Host {
             processID = 0;
             boolean successful = initRMI();
             boolean tcpSuccessful = initTCPServ();
-            leaderIP = "127.0.0.1";
+            leaderIP = "192.168.1.11";
             // Add ourselfs to our own peer array
             peers.add(new Peer(leaderIP, String.valueOf(SERVER_TCP_PORT), processID, true));
 
@@ -145,7 +145,7 @@ public class Host {
             }
         });
         checkingTimer.setInitialDelay(500);
-        checkingTimer.start();
+        //checkingTimer.start();
 
         // Create a timer that continiously updates the Booking list every second
         Timer updateTimer = new Timer(1000, new ActionListener() {
@@ -159,7 +159,7 @@ public class Host {
         updateTimer.start();
     }
 
-    private void updateBookings() {
+    private synchronized void updateBookings() {
         try {
             // Update the bookings
             bookings = rObject.getBookings();
@@ -481,7 +481,7 @@ public class Host {
                 serverSocket = new ServerSocket(tcpPort);
                 serverSocket.setSoTimeout(2000); // timeout for accept
                 System.out.println("Server started at "
-                        + InetAddress.getLocalHost() + " on port " + tcpPort);
+                        + InetAddress.getLocalHost().getHostAddress() + " on port " + tcpPort);
             } catch (IOException e) {
                 System.err.println("Server can't listen on port: " + e);
                 System.exit(-1);
@@ -565,7 +565,7 @@ public class Host {
         }
 
         // Part of the TCPServer inner class
-        private String handleRequst(String request, String clientIP) {
+        private synchronized String handleRequst(String request, String clientIP) {
             // Handle Incomming TCP requests
             // Split the request into an array on the delimter ":"
             String response = "";
