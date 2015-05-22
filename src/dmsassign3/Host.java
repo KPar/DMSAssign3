@@ -419,7 +419,7 @@ public class Host {
             Socket socket = null;
 
             try {
-                socket = new Socket(peers.get(i).getIpAddress(), SERVER_TCP_PORT);
+                socket = new Socket(peers.get(i).getIpAddress(), Integer.parseInt(peers.get(i).getPortNumber()));
             } catch (IOException e) {
                 System.err.println("Client could not make connection to peer(" + peers.get(i).toString() + "): " + e);
                 System.exit(-1);
