@@ -23,6 +23,7 @@ import java.net.SocketTimeoutException;
 import java.rmi.Naming;
 import java.rmi.NotBoundException;
 import java.rmi.RemoteException;
+import java.rmi.UnknownHostException;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
 import java.rmi.server.UnicastRemoteObject;
@@ -81,7 +82,6 @@ public class Host {
 
     public Host(boolean isServer, String ip) {
         
-
         this.isServer = isServer;
         ourIP = "192.168.1.11";    // We need to change this to represent the outbound
         // network adapter IP
@@ -89,6 +89,7 @@ public class Host {
             // Try to create the RMI object
             // Since this is the server create the RMI server and begin listing
             // for TCP and RMI requests.
+            System.setProperty( "java.rmi.server.hostname", "192.168.1.11" ) ;
             processID = 0;
             boolean successful = initRMI();
             boolean tcpSuccessful = initTCPServ();
@@ -111,6 +112,7 @@ public class Host {
 
         gbc.insets = new Insets(15, 15, 15, 15);
         container.setLayout(layout);
+
         gbc.gridx = 1;
         gbc.gridy = 1;
         p1.add(add, gbc);
@@ -283,17 +285,17 @@ public class Host {
         gbc.gridy = 0;
         p1.add(systemip);
         
-        String ip;
+        String ip = null;
         boolean successful = false;
         RMIBookingImpl remoteObject
                 = new RMIBookingImpl();
         
         try {
             ip = InetAddress.getLocalHost().getHostAddress();
-            systemip.setText(ip);
-        } catch (UnknownHostException ex) {
+        } catch (java.net.UnknownHostException ex) {
             Logger.getLogger(Host.class.getName()).log(Level.SEVERE, null, ex);
         }
+        systemip.setText(ip);
 
 
         try {  // create stub (note prior to Java 5.0 must use rmic utility)
