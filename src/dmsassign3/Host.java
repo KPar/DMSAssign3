@@ -154,7 +154,7 @@ public class Host {
             }
         });
         checkingTimer.setInitialDelay(500);
-        //checkingTimer.start();
+        checkingTimer.start();
 
         // Create a timer that continiously updates the Booking list every second
         Timer updateTimer = new Timer(1000, new ActionListener() {
