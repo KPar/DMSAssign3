@@ -101,7 +101,8 @@ public class Host {
             boolean tcpSuccessful = initTCPServ();
             leaderIP = ourIP;
             // Add ourselfs to our own peer array
-            peers.add(new Peer(leaderIP, String.valueOf(SERVER_TCP_PORT), processID, true));
+            thisPeer = new Peer(leaderIP, String.valueOf(SERVER_TCP_PORT), processID, true);
+            peers.add(thisPeer);
 
         } else {
             // If this host is a client attempt to connect on TCP to initiate
@@ -194,6 +195,11 @@ public class Host {
             // a peer they are remove from the peer list, if the disconnected
             // peer is the leader initiate a leader election.
             Peer p = peers.get(i);
+            if(p.equals(thisPeer))
+            {
+                // Don't bother PING'ing this peer since we obiously are still alive
+                continue;
+            }
 
             Socket socket = null;
             try {
@@ -209,6 +215,8 @@ public class Host {
                     // The disconnected peer was the leader initiate a leader election
                     // new LeaderElection().run();
                 }
+                
+                continue;
             }
 
             PrintWriter pw = null; // output stream to server

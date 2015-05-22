@@ -5,6 +5,8 @@
  */
 package dmsassign3;
 
+import java.util.Objects;
+
 /**
  *
  * @author j
@@ -59,5 +61,31 @@ class Peer {
     public String toString() {
         return ipAddress + "//" + portNumber + "//" + peerID + "//" + isLeader;
     }
-                    
+
+    @Override
+    public int hashCode() {
+        int hash = 3;
+        hash = 59 * hash + Objects.hashCode(this.ipAddress);
+        hash = 59 * hash + Objects.hashCode(this.portNumber);
+        hash = 59 * hash + this.peerID;
+        hash = 59 * hash + (this.isLeader ? 1 : 0);
+        return hash;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (obj == null) {
+            return false;
+        }
+        if (getClass() != obj.getClass()) {
+            return false;
+        }
+        final Peer other = (Peer) obj;
+        if (this.peerID != other.peerID) {
+            return false;
+        }
+        return true;
+    }
+       
+    
 }
