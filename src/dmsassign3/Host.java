@@ -74,13 +74,14 @@ public class Host {
     private String leaderIP;
     private String ourIP;
     private int processID;
-    
+
     private Peer thisPeer = null;
 
     public Host(boolean isServer, String ip) {
 
         this.isServer = isServer;
-        ourIP = "127.0.0.1";
+        ourIP = "127.0.0.1";    // We need to change this to represent the outbound
+        // network adapter IP
         if (isServer) {
             // Try to create the RMI object
             // Since this is the server create the RMI server and begin listing
@@ -178,8 +179,77 @@ public class Host {
     }
 
     private void checkConnection() {
-        // We now want to see if we can initiate a handshake to the current
-        // leader
+        // We check the status of connected peers
+        for (int i = 0; i < peers.size(); ++i) {
+            // Test a connection to the connected peer.  If connection fails to 
+            // a peer they are remove from the peer list, if the disconnected
+            // peer is the leader initiate a leader election.
+            Peer p = peers.get(i);
+
+            Socket socket = null;
+            try {
+                socket = new Socket(p.getIpAddress(), Integer.parseInt(p.getPortNumber()));
+            } catch (IOException e) {
+                System.err.println("Client could not make connection: " + e);
+                //System.exit(-1);
+                // Could not make connection to remote peer remove the peer from
+                // the peer list, check if the peer is the leader if so initiate
+                // leader election
+                peers.remove(i);
+                if(p.isIsLeader())
+                {
+                    // The disconnected peer was the leader initiate a leader election
+                    // new LeaderElection().run();
+                }
+            }
+
+            PrintWriter pw = null; // output stream to server
+            BufferedReader br = null; // input stream from server
+            try {  // create an autoflush output stream for the socket
+                pw = new PrintWriter(socket.getOutputStream(), true);
+                // create a buffered input stream for this socket
+                br = new BufferedReader(new InputStreamReader(
+                        socket.getInputStream()));
+                
+                // Send a PING message
+                String clientRequest = "PING";;                            
+                pw.println(clientRequest);  // println flushes itself
+                // then get server response and display it
+                String serverResponse = br.readLine(); // blocking
+
+                System.out.println("PING Response: " + serverResponse);
+                if(serverResponse.equals("PONG"))
+                {
+                    // Correct response from pinging server
+                }
+                else
+                {
+                    // Incorrect response from pinging server
+                }
+
+                // Send the server the done message
+                pw.println("DONE");
+
+            } catch (IOException e) {
+                // Unable to PING server this might mean we are disconnected
+                System.err.println("Client error: " + e);
+            } finally {
+                try {
+                    if (pw != null) {
+                        pw.close();
+                    }
+                    if (br != null) {
+                        br.close();
+                    }
+                    if (socket != null) {
+                        socket.close();
+                    }
+                } catch (IOException e) {
+                    System.err.println("Failed to close streams: " + e);
+                }
+            }
+
+        }
     }
 
     private boolean connectRMI(String ip) {
@@ -265,7 +335,7 @@ public class Host {
             System.out.println("Response: " + Arrays.toString(serverResponse));
             leaderIP = serverResponse[1];
             processID = Integer.parseInt(serverResponse[2]);
-            
+
             thisPeer = new Peer(ourIP, String.valueOf(CLIENT_TCP_PORT), processID, isServer);
 
             // Now ask the server for a current listing of all system nodes
@@ -302,7 +372,7 @@ public class Host {
                 System.err.println("Failed to close streams: " + e);
             }
         }
-        
+
         boolean handshakingSuccessful = handshakePeers();
         peers.add(thisPeer);
 
@@ -331,9 +401,9 @@ public class Host {
                         socket.getInputStream()));
 
                 String clientRequest;
-                
+
                 // Handshake with the peer
-                clientRequest = "Handshake:"+thisPeer.toString();
+                clientRequest = "Handshake:" + thisPeer.toString();
                 pw.println(clientRequest);  // println flushes itself
                 // then get server response and display it
                 String[] serverResponse = (br.readLine()).split(":"); // blocking
