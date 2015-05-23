@@ -629,6 +629,7 @@ public class Host {
                             response += peers.get(i) + ":";
                         }
                     }
+                    System.out.println("Prepared Response:"+response);
                     break;
                 }
                 case "Join": {
@@ -880,6 +881,8 @@ public class Host {
         } catch (RemoteException ex) {
             Logger.getLogger(Host.class.getName()).log(Level.SEVERE, null, ex);
         }
+        
+        
 
         stopTCPServ = true;
         while (serverStopped == false) {
