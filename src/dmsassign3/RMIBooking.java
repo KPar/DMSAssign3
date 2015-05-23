@@ -15,5 +15,8 @@ public interface RMIBooking extends Remote
    public void addBooking(String date, String name, int id) throws RemoteException;
    public ArrayList<Booking> getBookings() throws RemoteException;
    public void cancelBooking(int id) throws RemoteException;
+
+   public void setBookings(ArrayList<Booking> bookings) throws RemoteException;
+
    
 }

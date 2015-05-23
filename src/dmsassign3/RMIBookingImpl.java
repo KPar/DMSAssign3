@@ -45,4 +45,9 @@ public class RMIBookingImpl implements RMIBooking
             }
         }
     }
+
+    @Override
+    public synchronized void setBookings(ArrayList<Booking> bookings) throws RemoteException {
+        this.bookings = bookings;
+    }
 }

@@ -15,6 +15,7 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
+import static java.lang.Thread.sleep;
 import java.net.InetAddress;
 import java.net.MalformedURLException;
 import java.net.ServerSocket;
@@ -63,7 +64,8 @@ public class Host {
     JPanel container = new JPanel();
     JTextArea bookingView = new JTextArea();
     JTextArea systemip = new JTextArea();
-    JLabel hostip = new JLabel("Host IP");
+
+    JLabel isServerLabel = new JLabel("");
 
     JButton add = new JButton("Add");
     JLabel bookingsLabel = new JLabel("Bookings");
@@ -77,14 +79,18 @@ public class Host {
     private String leaderIP;
     private String ourIP;
     private int processID;
+    boolean isSelfInitiated = false;
 
     private Peer thisPeer = null;
+
+    Thread tcpServer;
+    Thread leaderElection;
 
     public Host(boolean isServer, String ip) {
         String localIP = null;
         try {
             localIP = InetAddress.getLocalHost().getHostAddress();
-            systemip.setText(ip);
+            systemip.setText("local: localIP");
         } catch (UnknownHostException ex) {
             Logger.getLogger(Host.class.getName()).log(Level.SEVERE, null, ex);
         }
@@ -96,10 +102,12 @@ public class Host {
             // Try to create the RMI object
             // Since this is the server create the RMI server and begin listing
             // for TCP and RMI requests.
+            isServerLabel.setText("Server");
             processID = 0;
             boolean successful = initRMI();
             boolean tcpSuccessful = initTCPServ();
             leaderIP = ourIP;
+
             // Add ourselfs to our own peer array
             thisPeer = new Peer(leaderIP, String.valueOf(SERVER_TCP_PORT), processID, true);
             peers.add(thisPeer);
@@ -107,6 +115,7 @@ public class Host {
         } else {
             // If this host is a client attempt to connect on TCP to initiate
             // handshake with remote host.
+            isServerLabel.setText("Client");
             boolean successful = connectTCP(ip);
 
             if (successful) {
@@ -128,6 +137,13 @@ public class Host {
         gbc.gridx = 1;
         gbc.gridy = 3;
         p1.add(bookingView, gbc);
+
+        gbc.gridx = 1;
+        gbc.gridy = 0;
+        p1.add(systemip);
+        gbc.gridx = 1;
+        gbc.gridy = 1;
+        p1.add(isServerLabel);
 
         container.add(p1);
 
@@ -174,7 +190,7 @@ public class Host {
             // Update the bookings
             bookings = rObject.getBookings();
         } catch (RemoteException ex) {
-            Logger.getLogger(Host.class.getName()).log(Level.SEVERE, null, ex);
+            //Logger.getLogger(Host.class.getName()).log(Level.SEVERE, null, ex);
             // We were unable to update the bookings from the main server
             // we will initialise leader election in the next handshake
             return;
@@ -212,7 +228,8 @@ public class Host {
                 peers.remove(i);
                 if (p.isIsLeader()) {
                     // The disconnected peer was the leader initiate a leader election
-                    // new LeaderElection().run();
+                    leaderElection = new LeaderElection();
+                    leaderElection.run();
                 }
 
                 continue;
@@ -285,13 +302,6 @@ public class Host {
     private boolean initRMI() {
         // This method creates a local RMI
         System.setProperty("java.rmi.server.hostname", ourIP);
-        gbc.gridx = 1;
-        gbc.gridy = 0;
-        p1.add(hostip, gbc);
-
-        gbc.gridx = 2;
-        gbc.gridy = 0;
-        p1.add(systemip);
 
         String ip;
         boolean successful = false;
@@ -300,7 +310,7 @@ public class Host {
 
         try {
             ip = InetAddress.getLocalHost().getHostAddress();
-            systemip.setText(ip);
+            systemip.setText("Local: " + ip);
         } catch (UnknownHostException ex) {
             Logger.getLogger(Host.class.getName()).log(Level.SEVERE, null, ex);
         }
@@ -480,7 +490,8 @@ public class Host {
         } else {
             // Initialise the TCP server inside its own dedicated thread
             // wait until the server has started
-            new TCPServer().start();
+            tcpServer = new TCPServer();
+            tcpServer.start();
             int attempts = 0;
             while (serverStopped == false) {
                 try {
@@ -502,10 +513,10 @@ public class Host {
         public void run() {
             int tcpPort = 0;
             if (isServer) {
-                System.out.println("Starting TCP Server on Server Port");
+                System.out.println("Starting TCP Server on Server Port:" + SERVER_TCP_PORT);
                 tcpPort = SERVER_TCP_PORT;
             } else {
-                System.out.println("Starting TCP Server on Server Port");
+                System.out.println("Starting TCP Server on Server Port:" + CLIENT_TCP_PORT);
                 tcpPort = CLIENT_TCP_PORT;
             }
 
@@ -519,6 +530,8 @@ public class Host {
                 System.err.println("Server can't listen on port: " + e);
                 System.exit(-1);
             }
+            serverStopped = false;
+
             while (!stopTCPServ) {  // block until the next client requests a connection
                 // or else the server socket timeout is reached
                 try {
@@ -537,6 +550,8 @@ public class Host {
             }
             try {
                 serverSocket.close();
+                stopTCPServ = false;
+                serverStopped = true;
             } catch (IOException e) {  // ignore
             }
             System.out.println("Server stopping");
@@ -619,7 +634,15 @@ public class Host {
                 case "Join": {
                     // A new node wants to join the network
                     // We return return the host address of the current leader
-                    response = "LEADER:" + leaderIP + ":" + peers.size();
+                    int highestID = 0;
+                    for(int i = 0; i < peers.size(); ++i)      
+                    {
+                        if(peers.get(i).getPeerID() >= highestID);
+                        {
+                            highestID = peers.get(i).getPeerID()+1;
+                        }
+                    }
+                    response = "LEADER:" + leaderIP + ":" + highestID;
                     break;
                 }
                 case "Handshake": {
@@ -634,16 +657,240 @@ public class Host {
                     break;
                 }
                 case "ElectionMessage": {
+                    // We have received an election message from a peer
+                    int proposingPeerID = Integer.parseInt(tokens[1]);
+
+                    if (thisPeer.getPeerID() > proposingPeerID) {
+                        // Our peerID is larger reply ALIVE to the peer and initiate
+                        // new leader election
+                        // Our peerID is larger initiate a new leader election
+                        leaderElection = new LeaderElection();
+                        leaderElection.run();
+
+                        response = "ALIVE";
+                    } else {
+                        // New leader is authentic restart tcp and rmi connections
+                        boolean rmiSuccessful = connectRMI(leaderIP);
+                    }
 
                     break;
                 }
                 case "LeaderMessage": {
+                    // Check to see if we initated this election
+                    if (isSelfInitiated && leaderElection != null) {
+                        leaderElection.interrupt();
+                    }
+                    // We have received an leader message from a peer
+                    int proposingPeerID = Integer.parseInt(tokens[1]);
 
+                    if (thisPeer.getPeerID() > proposingPeerID) {
+                        // Our peerID is larger initiate a new leader election
+                        leaderElection = new LeaderElection();
+                        leaderElection.run();
+                    } else {
+                        // New leader is authentic restart tcp and rmi connections
+                        leaderIP = clientIP;
+                        boolean rmiSuccessful = connectRMI(leaderIP);
+                        for (int i = 0; i < peers.size(); ++i) {
+                            if (peers.get(i).getPeerID() == proposingPeerID) {
+                                peers.get(i).setPortNumber("14201");
+                                peers.get(i).setIsLeader(true);
+                            }
+                        }
+
+                    }
+
+                    response = "Ok";
                     break;
                 }
             }
 
             return response;
         }
+    }
+
+    // Inner class that handles starting a leader election
+    public class LeaderElection extends Thread {
+
+        // Set timeouts for connections here
+        @Override
+        public void run() {
+            // Initiate leader election
+            System.out.println("Initiating leader election");
+
+            // Alive messages
+            int aliveCount = 0;
+
+            // Broadcast an election message to all connected peers that have a higher process ID.
+            for (int i = 0; i < peers.size(); ++i) {
+                Socket socket = null;
+                Peer p = peers.get(i);
+                if (p.getPeerID() > thisPeer.getPeerID()) {
+
+                    try {
+                        socket = new Socket(p.getIpAddress(), Integer.parseInt(p.getPortNumber()));
+                    } catch (IOException e) {
+                        System.err.println("Client could not make connection to peer(" + p.toString() + "): " + e);
+                        //System.exit(-1);
+                    }
+
+                    PrintWriter pw = null; // output stream to server
+                    BufferedReader br = null; // input stream from server
+                    try {  // create an autoflush output stream for the socket
+                        pw = new PrintWriter(socket.getOutputStream(), true);
+                        // create a buffered input stream for this socket
+                        br = new BufferedReader(new InputStreamReader(
+                                socket.getInputStream()));
+
+                        String clientRequest;
+
+                        // Handshake with the peer
+                        clientRequest = "ElectionMessage:" + thisPeer.getPeerID();
+                        pw.println(clientRequest);  // println flushes itself
+                        // then get server response and display it
+                        String[] serverResponse = (br.readLine()).split(":"); // blocking
+
+                        System.out.println("Response: " + Arrays.toString(serverResponse));
+
+                        // Send the server the done message
+                        pw.println("DONE");
+
+                        if (serverResponse[0].equals("ALIVE")) {
+                            ++aliveCount;
+                        }
+
+                    } catch (IOException e) {
+                        // This means that we likely have crashed.
+                        System.err.println("Client error: " + e);
+
+                    } finally {
+                        try {
+                            if (pw != null) {
+                                pw.close();
+                            }
+                            if (br != null) {
+                                br.close();
+                            }
+                            if (socket != null) {
+                                socket.close();
+                            }
+                        } catch (IOException e) {
+                            System.err.println("Failed to close streams: " + e);
+                        }
+                    }
+                }
+            }
+
+            // Now that we have contacted all our peers
+            if (aliveCount > 0) {
+                try {
+                    // Wait for a leader message if no message arrives restart leader election
+                    sleep(10000);
+                } catch (InterruptedException ex) {
+                    // Our thread has been interupted which means that the TCPServer
+                    // received a leaderElection message
+                    return;
+                }
+
+                // We never received any messages restart leader election let this 
+                // thread die
+                leaderElection = new LeaderElection();
+                leaderElection.run();
+
+            } else if (aliveCount == 0) {
+                // There are no other peers so elect ourself as leader
+                // Initialise the RMI server
+
+                System.out.println("We won leader election, become new leader");
+
+                boolean rmiInit = initRMI();
+                isServer = true;
+                becomeServer();
+                for (int i = 0; i < peers.size(); ++i) {
+                    Socket socket = null;
+                    Peer p = peers.get(i);
+
+                    if (p.equals(thisPeer)) {
+                        continue;
+                    }
+
+                    try {
+                        socket = new Socket(p.getIpAddress(), Integer.parseInt(p.getPortNumber()));
+                    } catch (IOException e) {
+                        System.err.println("Client could not make connection to peer(" + p.toString() + "): " + e);
+                        //System.exit(-1);
+                    }
+
+                    PrintWriter pw = null; // output stream to server
+                    BufferedReader br = null; // input stream from server
+                    try {  // create an autoflush output stream for the socket
+                        pw = new PrintWriter(socket.getOutputStream(), true);
+                        // create a buffered input stream for this socket
+                        br = new BufferedReader(new InputStreamReader(
+                                socket.getInputStream()));
+
+                        String clientRequest;
+
+                        // Send the new leader message
+                        clientRequest = "LeaderMessage:" + thisPeer.getPeerID();
+                        pw.println(clientRequest);  // println flushes itself
+                        // then get server response and display it
+                        String[] serverResponse = (br.readLine()).split(":"); // blocking
+
+                        System.out.println("Response: " + Arrays.toString(serverResponse));
+
+                        // Send the server the done message
+                        pw.println("DONE");
+
+                    } catch (IOException e) {
+                        // This means that we likely have crashed.
+                        System.err.println("Client error: " + e);
+
+                    } finally {
+                        try {
+                            if (pw != null) {
+                                pw.close();
+                            }
+                            if (br != null) {
+                                br.close();
+                            }
+                            if (socket != null) {
+                                socket.close();
+                            }
+                        } catch (IOException e) {
+                            System.err.println("Failed to close streams: " + e);
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    public void becomeServer() {
+        isServerLabel.setText("Server");
+        for (int i = 0; i < peers.size(); ++i) {
+            if (peers.get(i).equals(thisPeer)) {
+                peers.get(i).setPortNumber("14201");
+                peers.get(i).setIsLeader(true);
+            }
+        }
+        try {
+            rObject.setBookings(bookings);
+        } catch (RemoteException ex) {
+            Logger.getLogger(Host.class.getName()).log(Level.SEVERE, null, ex);
+        }
+
+        stopTCPServ = true;
+        while (serverStopped == false) {
+            try {
+                // Loop until the TCP server stops
+                sleep(100);
+            } catch (InterruptedException ex) {
+                Logger.getLogger(Host.class.getName()).log(Level.SEVERE, null, ex);
+            }
+        }
+
+        boolean initTCPServ = initTCPServ();
+
     }
 }
