@@ -649,7 +649,7 @@ public class Host {
                     // Add the calling peer to our peer list
                     String[] newPeer = (tokens[1]).split("//");
                     peers.add(new Peer(newPeer[0], newPeer[1], Integer.parseInt(newPeer[2]), Boolean.parseBoolean(newPeer[3])));
-                    response = "Ok";
+                    response = "HANDSHAKEOk";
                     break;
                 }
                 case "PING": {
@@ -868,6 +868,7 @@ public class Host {
 
     public void becomeServer() {
         isServerLabel.setText("Server");
+        leaderIP = ourIP;
         for (int i = 0; i < peers.size(); ++i) {
             if (peers.get(i).equals(thisPeer)) {
                 peers.get(i).setPortNumber("14201");
