@@ -151,7 +151,7 @@ public class Host {
             @Override
             public void actionPerformed(ActionEvent e) {
                 // Attempt to add the booking
-                
+
                 openAdd();
 
             }
@@ -185,9 +185,8 @@ public class Host {
         updateTimer.setInitialDelay(500);
         updateTimer.start();
     }
-    
-    private void openAdd()
-    {
+
+    private void openAdd() {
         Add add = new Add(rObject);
     }
 
@@ -446,7 +445,7 @@ public class Host {
             try {
                 socket = new Socket(peers.get(i).getIpAddress(), Integer.parseInt(peers.get(i).getPortNumber()));
             } catch (IOException e) {
-                System.err.println("Client could not make handshake connection to peer(" + peers.get(i).toString() + "): " + e);                                
+                System.err.println("Client could not make handshake connection to peer(" + peers.get(i).toString() + "): " + e);
             }
 
             PrintWriter pw = null; // output stream to server
@@ -753,10 +752,16 @@ public class Host {
                     try {
                         socket = new Socket(p.getIpAddress(), Integer.parseInt(p.getPortNumber()));
                     } catch (IOException e) {
-                        System.err.println("LEADER ELECTION: Client could not make connection to peer(" + p.toString() + "): " + e);
-                        // Couldn't connect to this host,  we will just continue and handle
-                        // peer deletion in the checkPeers method
-                        continue;
+                        try {
+                            socket = new Socket(p.getIpAddress(), Integer.parseInt(String.valueOf(SERVER_TCP_PORT)));
+                        } catch (IOException f) {
+                            // Double up the try statement and also check the peer with a server
+                            // port incase they won the election before we started
+                            System.err.println("LEADER ELECTION: Client could not make connection to peer(" + p.toString() + "): " + e);
+                            // Couldn't connect to this host,  we will just continue and handle
+                            // peer deletion in the checkPeers method
+                            continue;
+                        }
                     }
 
                     PrintWriter pw = null; // output stream to server
@@ -811,7 +816,7 @@ public class Host {
                 isSelfInitiated = true;
                 try {
                     // Wait for a leader message if no message arrives restart leader election
-                    sleep(10000);
+                    sleep(5000);
                 } catch (InterruptedException ex) {
                     // Our thread has been interupted which means that the TCPServer
                     // received a leaderElection message
@@ -868,7 +873,7 @@ public class Host {
                             System.out.println("Response: " + Arrays.toString(serverResponse));
 
                             if (serverResponse[0].equals("Ok-Bully")) {
-                            // A process with a higher ID is bullying us out of 
+                                // A process with a higher ID is bullying us out of 
                                 // the leader position
                                 bully = true;
                                 break;
