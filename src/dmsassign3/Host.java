@@ -229,8 +229,7 @@ public class Host {
                 if (p.isIsLeader()) {
                     // The disconnected peer was the leader initiate a leader election
                     // only start if there is not a currently running leader election                    
-                    if(leaderElection == null)
-                    {
+                    if (leaderElection == null) {
                         leaderElection = new LeaderElection();
                         leaderElection.run();
                     }
@@ -311,7 +310,7 @@ public class Host {
         boolean successful = false;
         RMIBookingImpl remoteObject
                 = new RMIBookingImpl();
-        
+
         try {
             remoteObject.setBookings(bookings);
         } catch (RemoteException ex) {
@@ -639,18 +638,17 @@ public class Host {
                             response += peers.get(i) + ":";
                         }
                     }
-                    System.out.println("Prepared Response:"+response);
+                    System.out.println("Prepared Response:" + response);
                     break;
                 }
                 case "Join": {
                     // A new node wants to join the network
                     // We return return the host address of the current leader
                     int highestID = 0;
-                    for(int i = 0; i < peers.size(); ++i)      
-                    {
-                        if(peers.get(i).getPeerID() >= highestID);
+                    for (int i = 0; i < peers.size(); ++i) {
+                        if (peers.get(i).getPeerID() >= highestID);
                         {
-                            highestID = peers.get(i).getPeerID()+1;
+                            highestID = peers.get(i).getPeerID() + 1;
                         }
                     }
                     response = "LEADER:" + leaderIP + ":" + highestID;
@@ -676,8 +674,7 @@ public class Host {
                         // new leader election
                         // Our peerID is larger initiate a new leader election
                         // Only start a new leader election if we havnt allready started an election.
-                        if(leaderElection == null)
-                        {
+                        if (leaderElection == null) {
                             leaderElection = new LeaderElection();
                             leaderElection.run();
                         }
@@ -694,10 +691,12 @@ public class Host {
 
                     break;
                 }
-                case "LeaderMessage": {
+                case "LeaderMessage":
                     // Check to see if we initated this election
                     if (leaderElection != null) {
                         leaderElection.interrupt();
+                        // Interupting leader election with success
+                        System.out.println("Interupting Leader Election");
                     }
                     // We have received an leader message from a peer
                     int proposingPeerID = Integer.parseInt(tokens[1]);
@@ -723,9 +722,7 @@ public class Host {
 
                     response = "Ok";
                     break;
-                }
             }
-
             return response;
         }
     }
@@ -781,7 +778,6 @@ public class Host {
                         if (serverResponse[0].equals("ALIVE")) {
                             ++aliveCount;
                         }
-                        
 
                     } catch (IOException e) {
                         // This means that we likely have crashed.
@@ -821,12 +817,11 @@ public class Host {
                 // thread die
                 leaderElection = new LeaderElection();
                 leaderElection.run();
-                
 
             } else if (aliveCount == 0) {
                 // There are no other peers so elect ourself as leader
                 // Initialise the RMI server
-                
+
                 System.out.println("We won leader election, become new leader");
                 boolean bully = false;
 
@@ -842,7 +837,7 @@ public class Host {
                         socket = new Socket(p.getIpAddress(), Integer.parseInt(p.getPortNumber()));
                     } catch (IOException e) {
                         // Server Died as we were sending messages
-                        
+
                         System.err.println("Client could not make connection to peer(" + p.toString() + "): " + e);
                         continue;
                     }
@@ -865,9 +860,8 @@ public class Host {
                         String[] serverResponse = line.split(":"); // blocking
 
                         System.out.println("Response: " + Arrays.toString(serverResponse));
-                        
-                        if(serverResponse[0].equals("Ok-Bully"))
-                        {
+
+                        if (serverResponse[0].equals("Ok-Bully")) {
                             // A process with a higher ID is bullying us out of 
                             // the leader position
                             bully = true;
@@ -897,15 +891,14 @@ public class Host {
                         }
                     }
                 }
-                
-                if(!bully)
-                {
+
+                if (!bully) {
                     boolean rmiInit = initRMI();
                     isServer = true;
-                    becomeServer();                
+                    becomeServer();
                 }
-                    leaderElection = null;
-                    
+                leaderElection = null;
+
             }
         }
     }
@@ -921,19 +914,21 @@ public class Host {
         }
         try {
             rObject.setBookings(bookings);
+
         } catch (RemoteException ex) {
-            Logger.getLogger(Host.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(Host.class
+                    .getName()).log(Level.SEVERE, null, ex);
         }
-        
-        
 
         stopTCPServ = true;
         while (serverStopped == false) {
             try {
                 // Loop until the TCP server stops
                 sleep(100);
+
             } catch (InterruptedException ex) {
-                Logger.getLogger(Host.class.getName()).log(Level.SEVERE, null, ex);
+                Logger.getLogger(Host.class
+                        .getName()).log(Level.SEVERE, null, ex);
             }
         }
 
