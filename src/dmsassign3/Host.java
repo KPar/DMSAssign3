@@ -321,6 +321,8 @@ public class Host {
         boolean successful = false;
         RMIBookingImpl remoteObject
                 = new RMIBookingImpl();
+        
+        
 
         try {
             ip = InetAddress.getLocalHost().getHostAddress();
@@ -334,6 +336,8 @@ public class Host {
             // get the registry which is running on the default port 1099
             Registry registry = LocateRegistry.createRegistry(1099);
             registry.rebind("greeting", stub);//binds if not already
+            
+            
 
             // display the names currently bound in the registry
             System.out.println("Names bound in RMI registry");
@@ -921,6 +925,7 @@ public class Host {
                 }
 
                 if (!bully) {
+                    
                     boolean rmiInit = initRMI();
                     isServer = true;
                     becomeServer();
