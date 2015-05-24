@@ -80,6 +80,7 @@ public class Host {
     private String ourIP;
     private int processID;
     boolean isSelfInitiated = false;
+    boolean electionDecided = false;
 
     private Peer thisPeer = null;
 
@@ -814,21 +815,27 @@ public class Host {
             // Now that we have contacted all our peers
             if (aliveCount > 0) {
                 isSelfInitiated = true;
-                try {
-                    // Wait for a leader message if no message arrives restart leader election
-                    sleep(5000);
-                } catch (InterruptedException ex) {
-                    // Our thread has been interupted which means that the TCPServer
-                    // received a leaderElection message
-                    return;
-                }
+                electionDecided = false;
+                
+                    try {
+                        // Wait for a leader message if no message arrives restart leader election
+                        sleep(5000);
+                    } catch (InterruptedException ex) {
+                        // Our thread has been interupted which means that the TCPServer
+                        // received a leaderElection message
+                        return;
+                    }
 
-                // We never received any messages restart leader election let this 
-                // thread die
-                leaderElection = new LeaderElection();
-                leaderElection.run();
+                    if(electionDecided)
+                    {
+                        // We never received any messages restart leader election let this 
+                        // thread die
+                        leaderElection = new LeaderElection();
+                        leaderElection.run();
+                        electionDecided = false;
+                    }
 
-            } else if (aliveCount == 0) {
+                }else if (aliveCount == 0) {
                 // There are no other peers so elect ourself as leader
                 // Initialise the RMI server
 
@@ -911,39 +918,39 @@ public class Host {
                 leaderElection = null;
 
             }
-        }
-    }
-
-    public void becomeServer() {
-        isServerLabel.setText("Server");
-        leaderIP = ourIP;
-        for (int i = 0; i < peers.size(); ++i) {
-            if (peers.get(i).equals(thisPeer)) {
-                peers.get(i).setPortNumber("14201");
-                peers.get(i).setIsLeader(true);
             }
         }
-        try {
-            rObject.setBookings(bookings);
 
-        } catch (RemoteException ex) {
-            Logger.getLogger(Host.class
-                    .getName()).log(Level.SEVERE, null, ex);
-        }
-
-        stopTCPServ = true;
-        while (serverStopped == false) {
+        public void becomeServer() {
+            isServerLabel.setText("Server");
+            leaderIP = ourIP;
+            for (int i = 0; i < peers.size(); ++i) {
+                if (peers.get(i).equals(thisPeer)) {
+                    peers.get(i).setPortNumber("14201");
+                    peers.get(i).setIsLeader(true);
+                }
+            }
             try {
-                // Loop until the TCP server stops
-                sleep(100);
+                rObject.setBookings(bookings);
 
-            } catch (InterruptedException ex) {
+            } catch (RemoteException ex) {
                 Logger.getLogger(Host.class
                         .getName()).log(Level.SEVERE, null, ex);
             }
+
+            stopTCPServ = true;
+            while (serverStopped == false) {
+                try {
+                    // Loop until the TCP server stops
+                    sleep(100);
+
+                } catch (InterruptedException ex) {
+                    Logger.getLogger(Host.class
+                            .getName()).log(Level.SEVERE, null, ex);
+                }
+            }
+
+            boolean initTCPServ = initTCPServ();
+
         }
-
-        boolean initTCPServ = initTCPServ();
-
     }
-}
