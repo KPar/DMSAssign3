@@ -749,8 +749,10 @@ public class Host {
                     try {
                         socket = new Socket(p.getIpAddress(), Integer.parseInt(p.getPortNumber()));
                     } catch (IOException e) {
-                        System.err.println("Client could not make connection to peer(" + p.toString() + "): " + e);
-                        //System.exit(-1);
+                        System.err.println("LEADER ELECTION: Client could not make connection to peer(" + p.toString() + "): " + e);
+                        // Couldn't connect to this host,  we will just continue and handle
+                        // peer deletion in the checkPeers method
+                        continue;
                     }
 
                     PrintWriter pw = null; // output stream to server
@@ -805,7 +807,7 @@ public class Host {
                 isSelfInitiated = true;
                 try {
                     // Wait for a leader message if no message arrives restart leader election
-                    sleep(10000);
+                    sleep(5000);
                 } catch (InterruptedException ex) {
                     // Our thread has been interupted which means that the TCPServer
                     // received a leaderElection message
