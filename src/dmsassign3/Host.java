@@ -807,7 +807,7 @@ public class Host {
                 isSelfInitiated = true;
                 try {
                     // Wait for a leader message if no message arrives restart leader election
-                    sleep(5000);
+                    sleep(10000);
                 } catch (InterruptedException ex) {
                     // Our thread has been interupted which means that the TCPServer
                     // received a leaderElection message
@@ -860,7 +860,8 @@ public class Host {
                         clientRequest = "LeaderMessage:" + thisPeer.getPeerID();
                         pw.println(clientRequest);  // println flushes itself
                         // then get server response and display it
-                        String[] serverResponse = (br.readLine()).split(":"); // blocking
+                        String line = br.readLine();
+                        String[] serverResponse = line.split(":"); // blocking
 
                         System.out.println("Response: " + Arrays.toString(serverResponse));
 
