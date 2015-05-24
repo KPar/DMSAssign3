@@ -677,6 +677,10 @@ public class Host {
                         response = "ALIVE";
                     } else {
                         // New leader is authentic restart tcp and rmi connections
+                        // New leader
+                        leaderIP = peers.get(proposingPeerID).getIpAddress();
+                        peers.get(proposingPeerID).setIsLeader(true);
+                        peers.get(proposingPeerID).setPortNumber(String.valueOf(14201));
                         boolean rmiSuccessful = connectRMI(leaderIP);
                     }
 
@@ -790,6 +794,7 @@ public class Host {
 
             // Now that we have contacted all our peers
             if (aliveCount > 0) {
+                isSelfInitiated = true;
                 try {
                     // Wait for a leader message if no message arrives restart leader election
                     sleep(10000);
