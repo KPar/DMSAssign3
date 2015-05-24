@@ -228,8 +228,12 @@ public class Host {
                 peers.remove(i);
                 if (p.isIsLeader()) {
                     // The disconnected peer was the leader initiate a leader election
-                    leaderElection = new LeaderElection();
-                    leaderElection.run();
+                    // only start if there is not a currently running leader election                    
+                    if(leaderElection == null)
+                    {
+                        leaderElection = new LeaderElection();
+                        leaderElection.run();
+                    }
                 }
 
                 continue;
@@ -671,8 +675,12 @@ public class Host {
                         // Our peerID is larger reply ALIVE to the peer and initiate
                         // new leader election
                         // Our peerID is larger initiate a new leader election
-                        leaderElection = new LeaderElection();
-                        leaderElection.run();
+                        // Only start a new leader election if we havnt allready started an election.
+                        if(leaderElection == null)
+                        {
+                            leaderElection = new LeaderElection();
+                            leaderElection.run();
+                        }
 
                         response = "ALIVE";
                     } else {
@@ -808,11 +816,12 @@ public class Host {
                 // thread die
                 leaderElection = new LeaderElection();
                 leaderElection.run();
+                
 
             } else if (aliveCount == 0) {
                 // There are no other peers so elect ourself as leader
                 // Initialise the RMI server
-
+                
                 System.out.println("We won leader election, become new leader");
 
                 boolean rmiInit = initRMI();
@@ -876,6 +885,8 @@ public class Host {
                         }
                     }
                 }
+                
+                leaderElection = null;
             }
         }
     }
