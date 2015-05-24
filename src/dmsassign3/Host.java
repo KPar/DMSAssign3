@@ -318,12 +318,6 @@ public class Host {
                 = new RMIBookingImpl();
 
         try {
-            remoteObject.setBookings(bookings);
-        } catch (RemoteException ex) {
-            // Just incase we are creating the RMI server again
-        }
-
-        try {
             ip = InetAddress.getLocalHost().getHostAddress();
             systemip.setText("Local: " + ip);
         } catch (UnknownHostException ex) {
@@ -335,6 +329,7 @@ public class Host {
             // get the registry which is running on the default port 1099
             Registry registry = LocateRegistry.createRegistry(1099);
             registry.rebind("greeting", stub);//binds if not already
+            
             // display the names currently bound in the registry
             System.out.println("Names bound in RMI registry");
             try {
@@ -350,6 +345,12 @@ public class Host {
             }
         } catch (RemoteException e) {
             System.err.println("Unable to bind to registry: " + e);
+        }
+
+        try {
+            remoteObject.setBookings(bookings);
+        } catch (RemoteException ex) {
+            // Just incase we are creating the RMI server again
         }
         // note that separate thread created to keep remoteObject alive
         System.out.println("Main method of RMIGreetingImpl done");
@@ -816,26 +817,25 @@ public class Host {
             if (aliveCount > 0) {
                 isSelfInitiated = true;
                 electionDecided = false;
-                
-                    try {
-                        // Wait for a leader message if no message arrives restart leader election
-                        sleep(5000);
-                    } catch (InterruptedException ex) {
+
+                try {
+                    // Wait for a leader message if no message arrives restart leader election
+                    sleep(5000);
+                } catch (InterruptedException ex) {
                         // Our thread has been interupted which means that the TCPServer
-                        // received a leaderElection message
-                        return;
-                    }
+                    // received a leaderElection message
+                    return;
+                }
 
-                    if(electionDecided)
-                    {
+                if (electionDecided) {
                         // We never received any messages restart leader election let this 
-                        // thread die
-                        leaderElection = new LeaderElection();
-                        leaderElection.run();
-                        electionDecided = false;
-                    }
+                    // thread die
+                    leaderElection = new LeaderElection();
+                    leaderElection.run();
+                    electionDecided = false;
+                }
 
-                }else if (aliveCount == 0) {
+            } else if (aliveCount == 0) {
                 // There are no other peers so elect ourself as leader
                 // Initialise the RMI server
 
@@ -918,39 +918,39 @@ public class Host {
                 leaderElection = null;
 
             }
+        }
+    }
+
+    public void becomeServer() {
+        isServerLabel.setText("Server");
+        leaderIP = ourIP;
+        for (int i = 0; i < peers.size(); ++i) {
+            if (peers.get(i).equals(thisPeer)) {
+                peers.get(i).setPortNumber("14201");
+                peers.get(i).setIsLeader(true);
             }
         }
+        try {
+            rObject.setBookings(bookings);
 
-        public void becomeServer() {
-            isServerLabel.setText("Server");
-            leaderIP = ourIP;
-            for (int i = 0; i < peers.size(); ++i) {
-                if (peers.get(i).equals(thisPeer)) {
-                    peers.get(i).setPortNumber("14201");
-                    peers.get(i).setIsLeader(true);
-                }
-            }
+        } catch (RemoteException ex) {
+            Logger.getLogger(Host.class
+                    .getName()).log(Level.SEVERE, null, ex);
+        }
+
+        stopTCPServ = true;
+        while (serverStopped == false) {
             try {
-                rObject.setBookings(bookings);
+                // Loop until the TCP server stops
+                sleep(100);
 
-            } catch (RemoteException ex) {
+            } catch (InterruptedException ex) {
                 Logger.getLogger(Host.class
                         .getName()).log(Level.SEVERE, null, ex);
             }
-
-            stopTCPServ = true;
-            while (serverStopped == false) {
-                try {
-                    // Loop until the TCP server stops
-                    sleep(100);
-
-                } catch (InterruptedException ex) {
-                    Logger.getLogger(Host.class
-                            .getName()).log(Level.SEVERE, null, ex);
-                }
-            }
-
-            boolean initTCPServ = initTCPServ();
-
         }
+
+        boolean initTCPServ = initTCPServ();
+
     }
+}
