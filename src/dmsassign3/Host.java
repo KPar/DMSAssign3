@@ -307,6 +307,12 @@ public class Host {
         boolean successful = false;
         RMIBookingImpl remoteObject
                 = new RMIBookingImpl();
+        
+        try {
+            remoteObject.setBookings(bookings);
+        } catch (RemoteException ex) {
+            // Just incase we are creating the RMI server again
+        }
 
         try {
             ip = InetAddress.getLocalHost().getHostAddress();
