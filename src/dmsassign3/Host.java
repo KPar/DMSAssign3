@@ -440,8 +440,7 @@ public class Host {
             try {
                 socket = new Socket(peers.get(i).getIpAddress(), Integer.parseInt(peers.get(i).getPortNumber()));
             } catch (IOException e) {
-                System.err.println("Client could not make connection to peer(" + peers.get(i).toString() + "): " + e);
-                System.exit(-1);
+                System.err.println("Client could not make handshake connection to peer(" + peers.get(i).toString() + "): " + e);                                
             }
 
             PrintWriter pw = null; // output stream to server
