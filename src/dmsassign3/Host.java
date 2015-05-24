@@ -151,7 +151,8 @@ public class Host {
             @Override
             public void actionPerformed(ActionEvent e) {
                 // Attempt to add the booking
-                Add add = new Add(rObject);
+                
+                openAdd();
 
             }
         });
@@ -183,6 +184,11 @@ public class Host {
         });
         updateTimer.setInitialDelay(500);
         updateTimer.start();
+    }
+    
+    private void openAdd()
+    {
+        Add add = new Add(rObject);
     }
 
     private synchronized void updateBookings() {
