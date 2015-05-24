@@ -857,17 +857,18 @@ public class Host {
                         pw.println(clientRequest);  // println flushes itself
                         // then get server response and display it
                         String line = br.readLine();
-                        String[] serverResponse = line.split(":"); // blocking
+                        if (line != null) {
+                            String[] serverResponse = line.split(":"); // blocking
 
-                        System.out.println("Response: " + Arrays.toString(serverResponse));
+                            System.out.println("Response: " + Arrays.toString(serverResponse));
 
-                        if (serverResponse[0].equals("Ok-Bully")) {
+                            if (serverResponse[0].equals("Ok-Bully")) {
                             // A process with a higher ID is bullying us out of 
-                            // the leader position
-                            bully = true;
-                            break;
+                                // the leader position
+                                bully = true;
+                                break;
+                            }
                         }
-
                         // Send the server the done message
                         pw.println("DONE");
 
