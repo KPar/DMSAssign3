@@ -709,6 +709,7 @@ public class Host {
 
                     if (thisPeer.getPeerID() > proposingPeerID) {
                         // Our peerID is larger initiate a new leader election
+                    
                         leaderElection = new LeaderElection();
                         leaderElection.run();
                         response = "Ok-Bully";
@@ -716,6 +717,8 @@ public class Host {
                     } else {
                         // New leader is authentic restart tcp and rmi connections
                         leaderIP = clientIP;
+                        electionDecided = true;
+                        leaderElection.interrupt();
                         boolean rmiSuccessful = connectRMI(leaderIP);
                         for (int i = 0; i < peers.size(); ++i) {
                             if (peers.get(i).getPeerID() == proposingPeerID) {
