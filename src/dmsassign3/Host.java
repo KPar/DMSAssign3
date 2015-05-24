@@ -721,6 +721,7 @@ public class Host {
 
                         leaderElection = new LeaderElection();
                         leaderElection.run();
+                        haltUpdates = false;
                         response = "Ok-Bully";
                         break;
                     } else {
@@ -857,6 +858,7 @@ public class Host {
 
                 System.out.println("We won leader election, become new leader");
                 boolean bully = false;
+                
 
                 for (int i = 0; i < peers.size(); ++i) {
                     Socket socket = null;
@@ -925,6 +927,7 @@ public class Host {
                         }
                     }
                 }
+                haltUpdates = false;
 
                 if (!bully) {
                     boolean rmiInit = initRMI();
@@ -932,6 +935,7 @@ public class Host {
                     becomeServer();
                 }
                 leaderElection = null;
+                
 
             }
         }
