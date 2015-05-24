@@ -719,7 +719,7 @@ public class Host {
                         // New leader is authentic restart tcp and rmi connections
                         leaderIP = clientIP;
                         electionDecided = true;
-                        leaderElection.interrupt();
+                        if(leaderElection != null){leaderElection.interrupt();}
                         boolean rmiSuccessful = connectRMI(leaderIP);
                         for (int i = 0; i < peers.size(); ++i) {
                             if (peers.get(i).getPeerID() == proposingPeerID) {
