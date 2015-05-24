@@ -293,6 +293,7 @@ public class Host {
     private boolean connectRMI(String ip) {
 
         // This method connects to a remote RMI
+        System.out.println("Attemptin to connect to remote RMI host:"+ip);
         boolean successful = false;
         try {
             Registry registry = LocateRegistry.getRegistry(ip);
