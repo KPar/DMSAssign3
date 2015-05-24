@@ -824,8 +824,10 @@ public class Host {
                     try {
                         socket = new Socket(p.getIpAddress(), Integer.parseInt(p.getPortNumber()));
                     } catch (IOException e) {
+                        // Server Died as we were sending messages
+                        
                         System.err.println("Client could not make connection to peer(" + p.toString() + "): " + e);
-                        //System.exit(-1);
+                        continue;
                     }
 
                     PrintWriter pw = null; // output stream to server
