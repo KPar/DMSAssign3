@@ -696,7 +696,7 @@ public class Host {
                 }
                 case "LeaderMessage": {
                     // Check to see if we initated this election
-                    if (isSelfInitiated && leaderElection != null) {
+                    if (leaderElection != null) {
                         leaderElection.interrupt();
                     }
                     // We have received an leader message from a peer
@@ -706,6 +706,8 @@ public class Host {
                         // Our peerID is larger initiate a new leader election
                         leaderElection = new LeaderElection();
                         leaderElection.run();
+                        response = "Ok-Bully";
+                        break;
                     } else {
                         // New leader is authentic restart tcp and rmi connections
                         leaderIP = clientIP;
@@ -779,6 +781,7 @@ public class Host {
                         if (serverResponse[0].equals("ALIVE")) {
                             ++aliveCount;
                         }
+                        
 
                     } catch (IOException e) {
                         // This means that we likely have crashed.
@@ -825,10 +828,8 @@ public class Host {
                 // Initialise the RMI server
                 
                 System.out.println("We won leader election, become new leader");
+                boolean bully = false;
 
-                boolean rmiInit = initRMI();
-                isServer = true;
-                becomeServer();
                 for (int i = 0; i < peers.size(); ++i) {
                     Socket socket = null;
                     Peer p = peers.get(i);
@@ -864,6 +865,14 @@ public class Host {
                         String[] serverResponse = line.split(":"); // blocking
 
                         System.out.println("Response: " + Arrays.toString(serverResponse));
+                        
+                        if(serverResponse[0].equals("Ok-Bully"))
+                        {
+                            // A process with a higher ID is bullying us out of 
+                            // the leader position
+                            bully = true;
+                            break;
+                        }
 
                         // Send the server the done message
                         pw.println("DONE");
@@ -889,7 +898,14 @@ public class Host {
                     }
                 }
                 
-                leaderElection = null;
+                if(!bully)
+                {
+                    boolean rmiInit = initRMI();
+                    isServer = true;
+                    becomeServer();                
+                }
+                    leaderElection = null;
+                    
             }
         }
     }
