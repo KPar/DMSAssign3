@@ -82,6 +82,8 @@ public class Host {
     boolean isSelfInitiated = false;
     boolean electionDecided = false;
 
+    boolean haltUpdates = false;
+
     private Peer thisPeer = null;
 
     Thread tcpServer;
@@ -192,108 +194,113 @@ public class Host {
     }
 
     private synchronized void updateBookings() {
-        try {
-            // Update the bookings
-            bookings = rObject.getBookings();
-        } catch (RemoteException ex) {
-            //Logger.getLogger(Host.class.getName()).log(Level.SEVERE, null, ex);
-            // We were unable to update the bookings from the main server
-            // we will initialise leader election in the next handshake
-            return;
-        }
-        String result = "";
-        for (int i = 0; i < bookings.size(); ++i) {
-            result += bookings.get(i).toString() + "\n";
-        }
-        InetAddress thisIp;
+        if (!haltUpdates) {
+            try {
+                // Update the bookings
+                bookings = rObject.getBookings();
+            } catch (RemoteException ex) {
+                //Logger.getLogger(Host.class.getName()).log(Level.SEVERE, null, ex);
+                // We were unable to update the bookings from the main server
+                // we will initialise leader election in the next handshake
+                return;
+            }
+            String result = "";
+            for (int i = 0; i < bookings.size(); ++i) {
+                result += bookings.get(i).toString() + "\n";
+            }
+            InetAddress thisIp;
 
-        bookingView.setText(result);
+            bookingView.setText(result);
+        }
     }
 
     private void checkConnection() {
         // We check the status of connected peers
-        for (int i = 0; i < peers.size(); ++i) {
+        if (!haltUpdates) {
+            for (int i = 0; i < peers.size(); ++i) {
             // Test a connection to the connected peer.  If connection fails to 
-            // a peer they are remove from the peer list, if the disconnected
-            // peer is the leader initiate a leader election.
-            Peer p = peers.get(i);
-            if (p.equals(thisPeer)) {
-                // Don't bother PING'ing this peer since we obiously are still alive
-                continue;
-            }
-
-            Socket socket = null;
-            try {
-                socket = new Socket(p.getIpAddress(), Integer.parseInt(p.getPortNumber()));
-            } catch (IOException e) {
-                System.err.println("Client could not make connection: " + e);
-                //System.exit(-1);
-                // Could not make connection to remote peer remove the peer from
-                // the peer list, check if the peer is the leader if so initiate
-                // leader election
-                peers.remove(i);
-                if (p.isIsLeader()) {
-                    // The disconnected peer was the leader initiate a leader election
-                    // only start if there is not a currently running leader election                    
-                    if (leaderElection == null) {
-                        leaderElection = new LeaderElection();
-                        leaderElection.run();
-                    }
+                // a peer they are remove from the peer list, if the disconnected
+                // peer is the leader initiate a leader election.
+                Peer p = peers.get(i);
+                if (p.equals(thisPeer)) {
+                    // Don't bother PING'ing this peer since we obiously are still alive
+                    continue;
                 }
 
-                continue;
-            }
-
-            PrintWriter pw = null; // output stream to server
-            BufferedReader br = null; // input stream from server
-            try {  // create an autoflush output stream for the socket
-                pw = new PrintWriter(socket.getOutputStream(), true);
-                // create a buffered input stream for this socket
-                br = new BufferedReader(new InputStreamReader(
-                        socket.getInputStream()));
-
-                // Send a PING message
-                String clientRequest = "PING";;
-                pw.println(clientRequest);  // println flushes itself
-                // then get server response and display it
-                String serverResponse = br.readLine(); // blocking
-
-                System.out.println("PING Response: " + serverResponse);
-                if (serverResponse.equals("PONG")) {
-                    // Correct response from pinging server
-                } else {
-                    // Incorrect response from pinging server
-                }
-
-                // Send the server the done message
-                pw.println("DONE");
-
-            } catch (IOException e) {
-                // Unable to PING server this might mean we are disconnected
-                System.err.println("Client error: " + e);
-            } finally {
+                Socket socket = null;
                 try {
-                    if (pw != null) {
-                        pw.close();
-                    }
-                    if (br != null) {
-                        br.close();
-                    }
-                    if (socket != null) {
-                        socket.close();
-                    }
+                    socket = new Socket(p.getIpAddress(), Integer.parseInt(p.getPortNumber()));
                 } catch (IOException e) {
-                    System.err.println("Failed to close streams: " + e);
-                }
-            }
+                    System.err.println("Client could not make connection: " + e);
+                //System.exit(-1);
+                    // Could not make connection to remote peer remove the peer from
+                    // the peer list, check if the peer is the leader if so initiate
+                    // leader election
+                    peers.remove(i);
+                    if (p.isIsLeader()) {
+                    // The disconnected peer was the leader initiate a leader election
+                        // only start if there is not a currently running leader election                    
+                        if (leaderElection == null) {
+                            haltUpdates = true;
+                            leaderElection = new LeaderElection();
+                            leaderElection.run();
+                        }
+                    }
 
+                    continue;
+                }
+
+                PrintWriter pw = null; // output stream to server
+                BufferedReader br = null; // input stream from server
+                try {  // create an autoflush output stream for the socket
+                    pw = new PrintWriter(socket.getOutputStream(), true);
+                    // create a buffered input stream for this socket
+                    br = new BufferedReader(new InputStreamReader(
+                            socket.getInputStream()));
+
+                    // Send a PING message
+                    String clientRequest = "PING";;
+                    pw.println(clientRequest);  // println flushes itself
+                    // then get server response and display it
+                    String serverResponse = br.readLine(); // blocking
+
+                    System.out.println("PING Response: " + serverResponse);
+                    if (serverResponse.equals("PONG")) {
+                        // Correct response from pinging server
+                    } else {
+                        // Incorrect response from pinging server
+                    }
+
+                    // Send the server the done message
+                    pw.println("DONE");
+
+                } catch (IOException e) {
+                    // Unable to PING server this might mean we are disconnected
+                    System.err.println("Client error: " + e);
+                } finally {
+                    try {
+                        if (pw != null) {
+                            pw.close();
+                        }
+                        if (br != null) {
+                            br.close();
+                        }
+                        if (socket != null) {
+                            socket.close();
+                        }
+                    } catch (IOException e) {
+                        System.err.println("Failed to close streams: " + e);
+                    }
+                }
+
+            }
         }
     }
 
     private boolean connectRMI(String ip) {
 
         // This method connects to a remote RMI
-        System.out.println("Attemptin to connect to remote RMI host:"+ip);
+        System.out.println("Attemptin to connect to remote RMI host:" + ip);
         boolean successful = false;
         try {
             Registry registry = LocateRegistry.getRegistry(ip);
@@ -330,7 +337,7 @@ public class Host {
             // get the registry which is running on the default port 1099
             Registry registry = LocateRegistry.createRegistry(1099);
             registry.rebind("greeting", stub);//binds if not already
-            
+
             // display the names currently bound in the registry
             System.out.println("Names bound in RMI registry");
             try {
@@ -674,6 +681,7 @@ public class Host {
                 }
                 case "ElectionMessage": {
                     // We have received an election message from a peer
+                    haltUpdates = true;
                     int proposingPeerID = Integer.parseInt(tokens[1]);
 
                     if (thisPeer.getPeerID() > proposingPeerID) {
@@ -710,7 +718,7 @@ public class Host {
 
                     if (thisPeer.getPeerID() > proposingPeerID) {
                         // Our peerID is larger initiate a new leader election
-                    
+
                         leaderElection = new LeaderElection();
                         leaderElection.run();
                         response = "Ok-Bully";
@@ -719,7 +727,9 @@ public class Host {
                         // New leader is authentic restart tcp and rmi connections
                         leaderIP = clientIP;
                         electionDecided = true;
-                        if(leaderElection != null){leaderElection.interrupt();}
+                        if (leaderElection != null) {
+                            leaderElection.interrupt();
+                        }
                         boolean rmiSuccessful = connectRMI(leaderIP);
                         for (int i = 0; i < peers.size(); ++i) {
                             if (peers.get(i).getPeerID() == proposingPeerID) {
@@ -729,6 +739,8 @@ public class Host {
                         }
 
                     }
+                    
+                    haltUpdates = false;
 
                     response = "Ok";
                     break;
@@ -826,13 +838,13 @@ public class Host {
                     // Wait for a leader message if no message arrives restart leader election
                     sleep(5000);
                 } catch (InterruptedException ex) {
-                        // Our thread has been interupted which means that the TCPServer
+                    // Our thread has been interupted which means that the TCPServer
                     // received a leaderElection message
                     return;
                 }
 
                 if (electionDecided) {
-                        // We never received any messages restart leader election let this 
+                    // We never received any messages restart leader election let this 
                     // thread die
                     leaderElection = new LeaderElection();
                     leaderElection.run();
