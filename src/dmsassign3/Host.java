@@ -750,7 +750,7 @@ public class Host {
                     // next connection test
                     // wait just in case the server needs more time to initiate
 
-                    sleep(1000);
+                    wait(1000);
                 } catch (InterruptedException ex) {
                     Logger.getLogger(Host.class.getName()).log(Level.SEVERE, null, ex);
                 }
