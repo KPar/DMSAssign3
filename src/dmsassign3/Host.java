@@ -929,8 +929,11 @@ public class Host {
                 boolean bully = false;
 
                 for (int i = 0; i < peers.size(); ++i) {
+                    
                     Socket socket = null;
                     Peer p = peers.get(i);
+                    
+                    System.err.println("Sending LeaderMsg:  Client could not make connection to peer(" + p.toString() +")");
 
                     if (p.equals(thisPeer)) {
                         continue;
