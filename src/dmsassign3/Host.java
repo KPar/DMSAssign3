@@ -744,22 +744,25 @@ public class Host {
                         response = "Ok-Bully";
                         break;
                     } else {
-                        // New leader is authentic restart tcp and rmi connections
-                        // Add the server as a new peer and let the old client peer die at the 
-                        // next connection test
+                try {
+                    // New leader is authentic restart tcp and rmi connections
+                    // Add the server as a new peer and let the old client peer die at the
+                    // next connection test
+                    // wait just in case the server needs more time to initiate
+
+                    sleep(1000);
+                } catch (InterruptedException ex) {
+                    Logger.getLogger(Host.class.getName()).log(Level.SEVERE, null, ex);
+                }
                         leaderIP = clientIP;
                         electionDecided = true;
                         if (leaderElection != null) {
                             leaderElection.interrupt();
                         }
                         boolean rmiSuccessful = connectRMI(leaderIP);
-                        for (int i = 0; i < peers.size(); ++i) {
-                            if (peers.get(i).getPeerID() == proposingPeerID) {
-                                peers.get(i).setPortNumber("14201");
-                                peers.get(i).setIsLeader(true);
-                            }
-                        }
 
+                        // Add the leader as a new peer and we can let the old
+                        // die
                         peers.add(new Peer(leaderIP, String.valueOf(SERVER_TCP_PORT), proposingPeerID, true));
                     }
 
