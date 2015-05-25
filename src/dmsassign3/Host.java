@@ -716,15 +716,7 @@ public class Host {
                         }
 
                         response = "ALIVE";
-                    } else {
-                        // New leader is authentic restart tcp and rmi connections
-                        // New leader
-                        leaderIP = peers.get(proposingPeerID).getIpAddress();
-                        peers.get(proposingPeerID).setIsLeader(true);
-                        peers.get(proposingPeerID).setPortNumber(String.valueOf(14201));
-                        boolean rmiSuccessful = connectRMI(leaderIP);
                     }
-
                     break;
                 }
                 case "LeaderMessage":
@@ -765,6 +757,7 @@ public class Host {
                         // Add the leader as a new peer and we can let the old
                         // die
                         peers.add(new Peer(leaderIP, String.valueOf(SERVER_TCP_PORT), proposingPeerID, true));
+                        System.out.println("Adding server peer");
                     }
 
                     response = "Ok";
