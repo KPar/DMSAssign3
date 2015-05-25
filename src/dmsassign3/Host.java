@@ -853,22 +853,19 @@ public class Host {
             if (aliveCount > 0) {
                 isSelfInitiated = true;
                 
-
-                try {
-                    // Wait for a leader message if no message arrives restart leader election
-                    sleep(5000);
-                } catch (InterruptedException ex) {
-                    // Our thread has been interupted which means that the TCPServer
-                    // received a leaderElection message
-                    return;
-                }
-
-                if (!electionDecided) {
+                long loopCount = 0;
+                while(!electionDecided && loopCount < 10000) {
                     // We never received any messages restart leader election let this 
                     // thread die
                     leaderElection = new LeaderElection();
                     leaderElection.run();
                     electionDecided = false;
+                    try {
+                        sleep(500);
+                    } catch (InterruptedException ex) {
+                        Logger.getLogger(Host.class.getName()).log(Level.SEVERE, null, ex);
+                    }
+                    loopCount += 500;
                 }
 
             } else if (aliveCount == 0) {
