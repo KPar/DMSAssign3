@@ -284,8 +284,11 @@ public class Host {
                         }
 
                         if (!newLeader) {
-                            leaderElection = new LeaderElection();
-                            leaderElection.run();
+                            if(leaderElection == null)
+                            {
+                                leaderElection = new LeaderElection();
+                                leaderElection.run();
+                            }
                         }
                     }
                 }
