@@ -218,6 +218,7 @@ public class Host {
 
     private void checkConnection() {
         // We check the status of connected peers
+        System.out.println("Beginning connection testing of peers");
         for (int i = 0; i < peers.size(); ++i) {
             // Test a connection to the connected peer.  If connection fails to 
             // a peer they are remove from the peer list, if the disconnected
@@ -233,6 +234,7 @@ public class Host {
                 // Set the time out to 8 seconds before we declare that we cannot reach the client
                 SocketAddress sockaddr = new InetSocketAddress(p.getIpAddress(), Integer.parseInt(p.getPortNumber()));
                 socket = new Socket();
+                System.out.println("Attempting to connect to peer ("+p.toString());
                 socket.connect(sockaddr, 7000);
             } catch (IOException e) {
                 System.err.println("CHECKING: Client could not make connection: " + e);
