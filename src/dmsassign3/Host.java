@@ -201,7 +201,7 @@ public class Host {
                 // Update the bookings
                 bookings = rObject.getBookings();
             } catch (RemoteException ex) {
-            //Logger.getLogger(Host.class.getName()).log(Level.SEVERE, null, ex);
+                //Logger.getLogger(Host.class.getName()).log(Level.SEVERE, null, ex);
                 // We were unable to update the bookings from the main server
                 // we will initialise leader election in the next handshake
                 return;
@@ -234,7 +234,7 @@ public class Host {
                 // Set the time out to 8 seconds before we declare that we cannot reach the client
                 SocketAddress sockaddr = new InetSocketAddress(p.getIpAddress(), Integer.parseInt(p.getPortNumber()));
                 socket = new Socket();
-                System.out.println("Attempting to connect to peer ("+p.toString());
+                System.out.println("Attempting to connect to peer (" + p.toString());
                 socket.connect(sockaddr, 7000);
             } catch (IOException e) {
                 System.err.println("CHECKING: Client could not make connection: " + e);
@@ -330,8 +330,6 @@ public class Host {
         boolean successful = false;
         RMIBookingImpl remoteObject
                 = new RMIBookingImpl();
-        
-        
 
         try {
             ip = InetAddress.getLocalHost().getHostAddress();
@@ -345,8 +343,6 @@ public class Host {
             // get the registry which is running on the default port 1099
             Registry registry = LocateRegistry.createRegistry(1099);
             registry.rebind("greeting", stub);//binds if not already
-            
-            
 
             // display the names currently bound in the registry
             System.out.println("Names bound in RMI registry");
@@ -748,7 +744,7 @@ public class Host {
                                 peers.get(i).setIsLeader(true);
                             }
                         }
-                        
+
                         peers.add(new Peer(leaderIP, String.valueOf(SERVER_TCP_PORT), proposingPeerID, true));
                     }
 
@@ -865,6 +861,20 @@ public class Host {
                 // There are no other peers so elect ourself as leader
                 // Initialise the RMI server
 
+                stopTCPServ = true;
+                while (serverStopped == false) {
+                    try {
+                        // Loop until the TCP server stops
+                        sleep(100);
+
+                    } catch (InterruptedException ex) {
+                        Logger.getLogger(Host.class
+                                .getName()).log(Level.SEVERE, null, ex);
+                    }
+                }
+
+                boolean initTCPServ = initTCPServ();
+
                 System.out.println("We won leader election, become new leader");
                 boolean bully = false;
 
@@ -937,7 +947,7 @@ public class Host {
                 }
 
                 if (!bully) {
-                    
+
                     boolean rmiInit = initRMI();
                     isServer = true;
                     becomeServer();
@@ -964,20 +974,6 @@ public class Host {
             Logger.getLogger(Host.class
                     .getName()).log(Level.SEVERE, null, ex);
         }
-
-        stopTCPServ = true;
-        while (serverStopped == false) {
-            try {
-                // Loop until the TCP server stops
-                sleep(100);
-
-            } catch (InterruptedException ex) {
-                Logger.getLogger(Host.class
-                        .getName()).log(Level.SEVERE, null, ex);
-            }
-        }
-
-        boolean initTCPServ = initTCPServ();
 
     }
 }
