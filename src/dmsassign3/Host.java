@@ -83,7 +83,7 @@ public class Host {
     private int processID;
     boolean isSelfInitiated = false;
     boolean electionDecided = false;
-    
+
     PeerInformation peerInfo = new PeerInformation();
 
     boolean haltUpdates = false;
@@ -130,7 +130,7 @@ public class Host {
                 // Since we successfully joined the system start our own TCP
                 // server to listen for requests.
                 boolean rmiSuccessful = connectRMI(leaderIP);
-                
+
             }
         }
 
@@ -304,18 +304,17 @@ public class Host {
             }
 
         }
-        
+
         String[] info = new String[peers.size()];
-        
-        for(int i = 0; i < peers.size(); ++i)
-        {
+
+        for (int i = 0; i < peers.size(); ++i) {
             String result = "";
             Peer p = peers.get(i);
-            result += "Host:" + p.getIpAddress() +"   Port:" + p.getPortNumber() + "    PID:" + p.getPeerID() + "   Leader:"+p.isIsLeader();
-            
+            result += "Host:" + p.getIpAddress() + "   Port:" + p.getPortNumber() + "    PID:" + p.getPeerID() + "   Leader:" + p.isIsLeader();
+
             info[i] = result;
         }
-        
+
         peerInfo.setPeers(info);
     }
 
@@ -738,16 +737,16 @@ public class Host {
                         response = "Ok-Bully";
                         break;
                     } else {
-                try {
+                        try {
                     // New leader is authentic restart tcp and rmi connections
-                    // Add the server as a new peer and let the old client peer die at the
-                    // next connection test
-                    // wait just in case the server needs more time to initiate
+                            // Add the server as a new peer and let the old client peer die at the
+                            // next connection test
+                            // wait just in case the server needs more time to initiate
 
-                    wait(1000);
-                } catch (InterruptedException ex) {
-                    Logger.getLogger(Host.class.getName()).log(Level.SEVERE, null, ex);
-                }
+                            wait(1000);
+                        } catch (InterruptedException ex) {
+                            Logger.getLogger(Host.class.getName()).log(Level.SEVERE, null, ex);
+                        }
                         leaderIP = proposingIP;
                         electionDecided = true;
                         if (leaderElection != null) {
@@ -852,20 +851,24 @@ public class Host {
             // Now that we have contacted all our peers
             if (aliveCount > 0) {
                 isSelfInitiated = true;
-                
+
                 long loopCount = 0;
-                while(!electionDecided && loopCount < 10000) {
+                while (!electionDecided && loopCount < 10000) {
                     // We never received any messages restart leader election let this 
                     // thread die
-                    leaderElection = new LeaderElection();
-                    leaderElection.run();
-                    electionDecided = false;
+
                     try {
                         sleep(500);
                     } catch (InterruptedException ex) {
                         Logger.getLogger(Host.class.getName()).log(Level.SEVERE, null, ex);
                     }
                     loopCount += 500;
+                }
+
+                if (!electionDecided) {
+                    leaderElection = new LeaderElection();
+                    leaderElection.run();
+                    electionDecided = false;
                 }
 
             } else if (aliveCount == 0) {
@@ -917,7 +920,7 @@ public class Host {
                         String clientRequest;
 
                         // Send the new leader message
-                        clientRequest = "LeaderMessage:" + thisPeer.getPeerID() + ":"+thisPeer.getIpAddress();
+                        clientRequest = "LeaderMessage:" + thisPeer.getPeerID() + ":" + thisPeer.getIpAddress();
                         pw.println(clientRequest);  // println flushes itself
                         // then get server response and display it
                         String line = br.readLine();
