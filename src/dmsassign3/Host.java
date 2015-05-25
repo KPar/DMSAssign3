@@ -734,6 +734,8 @@ public class Host {
                         break;
                     } else {
                         // New leader is authentic restart tcp and rmi connections
+                        // Add the server as a new peer and let the old client peer die at the 
+                        // next connection test
                         leaderIP = clientIP;
                         electionDecided = true;
                         if (leaderElection != null) {
@@ -746,7 +748,8 @@ public class Host {
                                 peers.get(i).setIsLeader(true);
                             }
                         }
-
+                        
+                        peers.add(new Peer(leaderIP, String.valueOf(SERVER_TCP_PORT), proposingPeerID, true));
                     }
 
                     response = "Ok";
