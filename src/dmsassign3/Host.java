@@ -862,7 +862,7 @@ public class Host {
                     return;
                 }
 
-                if (electionDecided) {
+                if (!electionDecided) {
                     // We never received any messages restart leader election let this 
                     // thread die
                     leaderElection = new LeaderElection();
