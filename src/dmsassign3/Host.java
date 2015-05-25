@@ -751,7 +751,7 @@ public class Host {
                         leaderIP = proposingIP;
                         electionDecided = true;
                         if (leaderElection != null) {
-                            leaderElection.interrupt();
+                            leaderElection.stop();
                         }
                         boolean rmiSuccessful = connectRMI(leaderIP);
 
