@@ -754,12 +754,6 @@ public class Host {
                     break;
                 }
                 case "LeaderMessage":
-                    // Check to see if we initated this election
-                    if (leaderElection != null) {
-                        leaderElection.interrupt();
-                        // Interupting leader election with success
-                        System.out.println("Interupting Leader Election");
-                    }
                     // We have received an leader message from a peer
                     int proposingPeerID = Integer.parseInt(tokens[1]);
                     String proposingIP = tokens[2];
