@@ -788,17 +788,14 @@ public class Host {
 
                     try {
                         socket = new Socket(p.getIpAddress(), Integer.parseInt(p.getPortNumber()));
-                    } catch (IOException e) {
-                        try {
-                            socket = new Socket(p.getIpAddress(), Integer.parseInt(String.valueOf(SERVER_TCP_PORT)));
-                        } catch (IOException f) {
+                    } catch (IOException f) {
                             // Double up the try statement and also check the peer with a server
                             // port incase they won the election before we started
-                            System.err.println("LEADER ELECTION: Client could not make connection to peer(" + p.toString() + "): " + e);
+                            System.err.println("LEADER ELECTION: Client could not make connection to peer(" + p.toString() + "): " + f);
                             // Couldn't connect to this host,  we will just continue and handle
                             // peer deletion in the checkPeers method
                             continue;
-                        }
+                        
                     }
 
                     PrintWriter pw = null; // output stream to server
