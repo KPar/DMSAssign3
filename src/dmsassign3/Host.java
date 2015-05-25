@@ -312,12 +312,20 @@ public class Host {
                 String serverResponse = br.readLine(); // blocking
 
                 System.out.println("PING Response: " + serverResponse);
+                if(serverResponse != null)
+                {
                 if (serverResponse.equals("PONG")) {
                     // Correct response from pinging server
                 } else {
                     // Incorrect response from pinging server
                 }
-
+                }
+                else
+                {
+                    // We must of lost connection during our transmission
+                    // Try the connection another time.
+                    continue;
+                }
                 // Send the server the done message
                 pw.println("DONE");
 
