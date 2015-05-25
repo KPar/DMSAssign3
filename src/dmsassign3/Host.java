@@ -282,11 +282,10 @@ public class Host {
                                 newLeader = true;
                             }
                         }
-                        
-                        if(!newLeader)
-                        {
+
+                        if (!newLeader) {
                             leaderElection = new LeaderElection();
-                            leaderElection.run();                            
+                            leaderElection.run();
                         }
                     }
                 }
@@ -831,7 +830,6 @@ public class Host {
                         // Couldn't connect to this host,  we will just continue and handle
                         // peer deletion in the checkPeers method
                         continue;
-
                     }
 
                     PrintWriter pw = null; // output stream to server
@@ -898,11 +896,11 @@ public class Host {
                     loopCount += 500;
                 }
 
-                if (!electionDecided) {
-                    leaderElection = new LeaderElection();
-                    leaderElection.run();
-                    electionDecided = false;
-                }
+               // if (!electionDecided) {
+                //    leaderElection = new LeaderElection();
+                //    leaderElection.run();
+                //    electionDecided = false;
+               // }
 
             } else if (aliveCount == 0) {
                 // There are no other peers so elect ourself as leader
