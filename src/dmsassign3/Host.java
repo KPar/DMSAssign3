@@ -248,10 +248,46 @@ public class Host {
                 peers.remove(i);
                 if (p.isIsLeader()) {
                     // The disconnected peer was the leader initiate a leader election
-                    // only start if there is not a currently running leader election                    
-                    if (leaderElection == null) {
-                        leaderElection = new LeaderElection();
-                        leaderElection.run();
+                    // only start if there is not a currently running leader election     
+                    // Check to see if there are any ids higher than ours
+
+                    // if our ID is not the largest wait for 20 seconds before initiaiting
+                    // a new leader election because another node will more then likely
+                    // handle the the election
+                    boolean highestID = true;
+                    for (int j = 0; j < peers.size(); ++j) {
+                        if (thisPeer.getPeerID() < peers.get(i).getPeerID()) {
+                            highestID = false;
+                        }
+                    }
+
+                    if (highestID) {
+                        if (leaderElection == null) {
+                            leaderElection = new LeaderElection();
+                            leaderElection.run();
+                        }
+                    } else {
+                        try {
+                            // Wait a time for another process to handle the message
+                            System.out.println("Waiting...");
+                            wait(10000);
+                        } catch (InterruptedException ex) {
+                            Logger.getLogger(Host.class.getName()).log(Level.SEVERE, null, ex);
+                        }
+
+                        // If there is a new leader ignore
+                        boolean newLeader = false;
+                        for (int j = 0; j < peers.size(); ++j) {
+                            if (thisPeer.isIsLeader()) {
+                                newLeader = true;
+                            }
+                        }
+                        
+                        if(!newLeader)
+                        {
+                            leaderElection = new LeaderElection();
+                            leaderElection.run();                            
+                        }
                     }
                 }
 
@@ -738,7 +774,7 @@ public class Host {
                         break;
                     } else {
                         try {
-                    // New leader is authentic restart tcp and rmi connections
+                            // New leader is authentic restart tcp and rmi connections
                             // Add the server as a new peer and let the old client peer die at the
                             // next connection test
                             // wait just in case the server needs more time to initiate
@@ -789,13 +825,13 @@ public class Host {
                     try {
                         socket = new Socket(p.getIpAddress(), Integer.parseInt(p.getPortNumber()));
                     } catch (IOException f) {
-                            // Double up the try statement and also check the peer with a server
-                            // port incase they won the election before we started
-                            System.err.println("LEADER ELECTION: Client could not make connection to peer(" + p.toString() + "): " + f);
-                            // Couldn't connect to this host,  we will just continue and handle
-                            // peer deletion in the checkPeers method
-                            continue;
-                        
+                        // Double up the try statement and also check the peer with a server
+                        // port incase they won the election before we started
+                        System.err.println("LEADER ELECTION: Client could not make connection to peer(" + p.toString() + "): " + f);
+                        // Couldn't connect to this host,  we will just continue and handle
+                        // peer deletion in the checkPeers method
+                        continue;
+
                     }
 
                     PrintWriter pw = null; // output stream to server
