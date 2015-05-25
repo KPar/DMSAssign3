@@ -230,7 +230,7 @@ public class Host {
             try {
                 socket = new Socket(p.getIpAddress(), Integer.parseInt(p.getPortNumber()));
             } catch (IOException e) {
-                System.err.println("Client could not make connection: " + e);
+                System.err.println("CHECKING: Client could not make connection: " + e);
                 //System.exit(-1);
                 // Could not make connection to remote peer remove the peer from
                 // the peer list, check if the peer is the leader if so initiate
@@ -245,7 +245,8 @@ public class Host {
                     }
                 }
 
-                continue;
+                // Stop checking peers this round
+                break;
             }
 
             PrintWriter pw = null; // output stream to server
