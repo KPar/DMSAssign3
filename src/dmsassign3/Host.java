@@ -276,6 +276,7 @@ public class Host {
             } catch (IOException e) {
                 // Unable to PING server this might mean we are disconnected
                 System.err.println("Client error: " + e);
+                break;
             } finally {
                 try {
                     if (pw != null) {
