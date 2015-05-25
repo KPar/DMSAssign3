@@ -774,6 +774,7 @@ public class Host {
         // Set timeouts for connections here
         @Override
         public void run() {
+            electionDecided = false;
             // Initiate leader election
             System.out.println("Initiating leader election");
 
@@ -851,7 +852,7 @@ public class Host {
             // Now that we have contacted all our peers
             if (aliveCount > 0) {
                 isSelfInitiated = true;
-                electionDecided = false;
+                
 
                 try {
                     // Wait for a leader message if no message arrives restart leader election
