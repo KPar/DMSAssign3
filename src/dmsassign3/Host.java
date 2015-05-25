@@ -83,6 +83,8 @@ public class Host {
     private int processID;
     boolean isSelfInitiated = false;
     boolean electionDecided = false;
+    
+    PeerInformation peerInfo = new PeerInformation();
 
     boolean haltUpdates = false;
 
@@ -301,6 +303,19 @@ public class Host {
             }
 
         }
+        
+        String[] info = new String[peers.size()];
+        
+        for(int i = 0; i < peers.size(); ++i)
+        {
+            String result = "";
+            Peer p = peers.get(i);
+            result += "Host:" + p.getIpAddress() +"   Port:" + p.getPortNumber() + "    PID:" + p.getPeerID() + "   Leader:"+p.isIsLeader();
+            
+            info[i] = result;
+        }
+        
+        peerInfo.setPeers(info);
     }
 
     private boolean connectRMI(String ip) {
