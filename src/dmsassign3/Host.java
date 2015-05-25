@@ -873,7 +873,7 @@ public class Host {
             } else if (aliveCount == 0) {
                 // There are no other peers so elect ourself as leader
                 // Initialise the RMI server
-
+                isServer = true;
                 stopTCPServ = true;
                 while (serverStopped == false) {
                     try {
