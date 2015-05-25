@@ -930,7 +930,7 @@ public class Host {
                     } catch (IOException e) {
                         // Server Died as we were sending messages
 
-                        System.err.println("Client could not make connection to peer(" + p.toString() + "): " + e);
+                        System.err.println("Sending new Leader:  Client could not make connection to peer(" + p.toString() + "): " + e);
                         continue;
                     }
 
