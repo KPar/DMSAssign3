@@ -123,13 +123,14 @@ public class Host {
             // If this host is a client attempt to connect on TCP to initiate
             // handshake with remote host.
             isServerLabel.setText("Client");
+            boolean tcpSuccessful = initTCPServ();
             boolean successful = connectTCP(ip);
 
             if (successful) {
                 // Since we successfully joined the system start our own TCP
                 // server to listen for requests.
                 boolean rmiSuccessful = connectRMI(leaderIP);
-                boolean tcpSuccessful = initTCPServ();
+                
             }
         }
 
