@@ -17,9 +17,11 @@ import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import static java.lang.Thread.sleep;
 import java.net.InetAddress;
+import java.net.InetSocketAddress;
 import java.net.MalformedURLException;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.net.SocketAddress;
 import java.net.SocketTimeoutException;
 import java.net.UnknownHostException;
 import java.rmi.Naming;
@@ -228,7 +230,10 @@ public class Host {
 
             Socket socket = null;
             try {
-                socket = new Socket(p.getIpAddress(), Integer.parseInt(p.getPortNumber()));
+                // Set the time out to 8 seconds before we declare that we cannot reach the client
+                SocketAddress sockaddr = new InetSocketAddress(p.getIpAddress(), Integer.parseInt(p.getPortNumber()));
+                socket = new Socket();
+                socket.connect(sockaddr, 7000);
             } catch (IOException e) {
                 System.err.println("CHECKING: Client could not make connection: " + e);
                 //System.exit(-1);
