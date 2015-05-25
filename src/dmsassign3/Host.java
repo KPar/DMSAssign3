@@ -169,7 +169,7 @@ public class Host {
         //frame.setDefaultCloseOperation(EXIT_ON_CLOSE);
 
         // Create a timer that continiously checks connection to the main server      
-        Timer checkingTimer = new Timer(1000, new ActionListener() {
+        Timer checkingTimer = new Timer(2000, new ActionListener() {
 
             @Override
             public void actionPerformed(ActionEvent ae) {
