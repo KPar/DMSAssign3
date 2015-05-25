@@ -105,7 +105,7 @@ public class Add {
        frame.add(container);
        frame.setVisible(true);
        frame.setResizable(true);
-       frame.setDefaultCloseOperation(EXIT_ON_CLOSE);
+       //frame.setDefaultCloseOperation(EXIT_ON_CLOSE);
         
     }
     
