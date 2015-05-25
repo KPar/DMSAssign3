@@ -728,6 +728,7 @@ public class Host {
                     }
                     // We have received an leader message from a peer
                     int proposingPeerID = Integer.parseInt(tokens[1]);
+                    String proposingIP = tokens[2];
 
                     if (thisPeer.getPeerID() > proposingPeerID) {
                         // Our peerID is larger initiate a new leader election
@@ -747,7 +748,7 @@ public class Host {
                 } catch (InterruptedException ex) {
                     Logger.getLogger(Host.class.getName()).log(Level.SEVERE, null, ex);
                 }
-                        leaderIP = clientIP;
+                        leaderIP = proposingIP;
                         electionDecided = true;
                         if (leaderElection != null) {
                             leaderElection.interrupt();
@@ -918,7 +919,7 @@ public class Host {
                         String clientRequest;
 
                         // Send the new leader message
-                        clientRequest = "LeaderMessage:" + thisPeer.getPeerID();
+                        clientRequest = "LeaderMessage:" + thisPeer.getPeerID() + ":"+thisPeer.getIpAddress();
                         pw.println(clientRequest);  // println flushes itself
                         // then get server response and display it
                         String line = br.readLine();
