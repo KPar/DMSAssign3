@@ -50,7 +50,7 @@ public class Host {
     // on the same host.
     boolean isServer;
     static public final int CLIENT_TCP_PORT = 14200;
-    static public final int SERVER_TCP_PORT = 14200;
+    static public final int SERVER_TCP_PORT = 14201;
 
     // Hold a reference to the remote object
     RMIBooking rObject;
