@@ -463,7 +463,7 @@ public class Host {
                 if (p.isIsLeader()) {
                     // Send a PING message
                     String leaderRequest = "CheckLock";
-                    pw.println(clientRequest);  // println flushes itself
+                    pw.println(leaderRequest);  // println flushes itself
                     // then get server response and display it
                     String leaderResponse = br.readLine(); // blocking
                     String[] resultCode = leaderResponse.split(":");
