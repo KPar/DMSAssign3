@@ -892,12 +892,11 @@ public class Host {
                 } catch (InterruptedException ex) {
                     Logger.getLogger(Host.class.getName()).log(Level.SEVERE, null, ex);
                 }
-                
+
                 System.out.println("Exiting Sleep while we wait for replys");
 
                 // Check to see if the election has been decided\
                 // If there is a new leader ignore
-                
                 boolean newLeader = false;
                 for (int j = 0; j < peers.size(); ++j) {
                     if (thisPeer.isIsLeader()) {
@@ -905,7 +904,7 @@ public class Host {
                     }
                 }
 
-                System.out.println("New Leader = "+newLeader);
+                System.out.println("New Leader = " + newLeader);
                 if (!newLeader) {
                     if (leaderElection == null) {
                         leaderElection = new LeaderElection();
@@ -930,6 +929,9 @@ public class Host {
                 }
 
                 boolean initTCPServ = initTCPServ();
+                boolean rmiInit = initRMI();
+                isServer = true;
+                becomeServer();
 
                 System.out.println("We won leader election, become new leader");
                 boolean bully = false;
@@ -1007,9 +1009,6 @@ public class Host {
 
                 if (!bully) {
 
-                    boolean rmiInit = initRMI();
-                    isServer = true;
-                    becomeServer();
                 }
                 leaderElection = null;
 
