@@ -742,7 +742,7 @@ public class Host {
                     response = "HANDSHAKEOk";
                     break;
                 }
-                case "PING": {
+                case "PING": {                    
                     response = "PONG";
                     break;
                 }
@@ -797,7 +797,7 @@ public class Host {
                         boolean rmiSuccessful = connectRMI(leaderIP);
 
                         // Add the leader as a new peer and we can let the old
-                        // die
+                        // die 
                         peers.add(new Peer(leaderIP, String.valueOf(SERVER_TCP_PORT), proposingPeerID, true));
                         System.out.println("Adding server peer");
                     }
@@ -935,7 +935,7 @@ public class Host {
                     Socket socket = null;
                     Peer p = peers.get(i);
                     
-                    System.err.println("Sending LeaderMsg:  Client could not make connection to peer(" + p.toString() +")");
+                    System.out.println("Sending LeaderMsg:  Client could not make connection to peer(" + p.toString() +")");
 
                     if (p.equals(thisPeer)) {
                         continue;
