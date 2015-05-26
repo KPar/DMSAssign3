@@ -279,12 +279,12 @@ public class Host {
                         // If there is a new leader ignore
                         boolean newLeader = false;
                         for (int j = 0; j < peers.size(); ++j) {
-                            if (thisPeer.isIsLeader()) {
+                            if (peers.get(j).isIsLeader()) {
                                 newLeader = true;
                             }
                         }
 
-                        if (!newLeader || !electionDecided) {
+                        if (newLeader  == false || electionDecided == false) {
                             if (leaderElection == null) {
                                 System.out.println("Calling leader election from check connection after detail");
                                 leaderElection = new LeaderElection();
@@ -902,7 +902,7 @@ public class Host {
                 // If there is a new leader ignore
                 boolean newLeader = false;
                 for (int j = 0; j < peers.size(); ++j) {
-                    if (thisPeer.isIsLeader()) {
+                    if (peers.get(j).isIsLeader()) {
                         newLeader = true;
                     }
                 }
@@ -945,7 +945,7 @@ public class Host {
                     Socket socket = null;
                     Peer p = peers.get(i);
 
-                    System.out.println("Sending LeaderMsg:  Client could not make connection to peer(" + p.toString() + ")");
+                    System.out.println("Sending LeaderMsg:  (" + p.toString() + ")");
 
                     if (p.equals(thisPeer)) {
                         continue;
