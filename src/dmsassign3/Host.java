@@ -797,7 +797,14 @@ public class Host {
 
                         // Add the leader as a new peer and we can let the old
                         // die 
-                        peers.add(new Peer(leaderIP, String.valueOf(SERVER_TCP_PORT), proposingPeerID, true));
+                        for(int i = 0; i < peers.size(); ++i)
+                        {
+                            if(peers.get(i).getPeerID() == proposingPeerID)
+                            {
+                                peers.get(i).setIsLeader(true);
+                            }
+                        }
+                       // peers.add(new Peer(leaderIP, String.valueOf(SERVER_TCP_PORT), proposingPeerID, true));
                         System.out.println("Adding server peer");
                     }
 
