@@ -1,7 +1,9 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
+/**
+ * Name: Host.java Created: 05.2015 (mm/YYYY)
+ *
+ * @author Ken
+ * @author Jony
+ *
  */
 package dmsassign3;
 
@@ -171,7 +173,7 @@ public class Host {
         frame.add(container);
         frame.setVisible(true);
         frame.setResizable(false);
-        //frame.setDefaultCloseOperation(EXIT_ON_CLOSE);
+        frame.setDefaultCloseOperation(EXIT_ON_CLOSE);
 
         // Create a timer that continiously checks connection to the main server      
         Timer checkingTimer = new Timer(2000, new ActionListener() {
@@ -264,7 +266,7 @@ public class Host {
             add.frame.addWindowListener(new java.awt.event.WindowAdapter() {
                 @Override
                 public void windowClosing(java.awt.event.WindowEvent windowEvent) {
-                // Since the user is closing the window we can release the lock
+                    // Since the user is closing the window we can release the lock
                     // we have
                     boolean successful = false;
                     Socket socket = null;
@@ -285,7 +287,7 @@ public class Host {
 
                         String clientRequest;
 
-                    // start communication by having client connect
+                        // start communication by having client connect
                         // send the Join request which will return the IP of the current leader
                         clientRequest = "Unlock:" + thisPeer.getPeerID();
                         pw.println(clientRequest);  // println flushes itself
@@ -324,17 +326,13 @@ public class Host {
                             System.err.println("Failed to close streams: " + e);
                         }
                     }
-
                 }
             });
-        }
-        else
-        {
+        } else {
             // We could not obtain a lock display an error to the user
             JOptionPane.showMessageDialog(this.frame, "Can not add a booking because"
-                    + "another process has the lock on the critial section");
+                    + " another process has the lock on the critial section");
         }
-
     }
 
     private synchronized void updateBookings() {
@@ -487,9 +485,7 @@ public class Host {
                         for (int f = 0; f < peers.size(); ++f) {
                             peers.get(f).setHasLock(false);
                         }
-
                     }
-
                 }
 
                 // Send the server the done message
@@ -514,7 +510,6 @@ public class Host {
                     System.err.println("Failed to close streams: " + e);
                 }
             }
-
         }
 
         String[] info = new String[peers.size()];

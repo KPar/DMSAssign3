@@ -1,10 +1,14 @@
+/**
+ * Name: RMIBooking.java 
+ * Created: 05.2015 (mm/YYYY)
+ *
+ * @author Ken
+ * @author Jony
+ *
+ */
+
 package dmsassign3;
 
-/**
-   A remote interface that represents a greeting
-   Note this interface should be on both the server and the client
-   @see RMIGreetingImpl.java
-*/
 import java.rmi.Remote;
 import java.rmi.RemoteException;
 import java.util.ArrayList;

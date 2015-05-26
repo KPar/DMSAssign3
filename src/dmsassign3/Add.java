@@ -1,8 +1,10 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
+/**
+ * Name:    Add.java
+ * Created:   05.2015 (mm/YYYY)
+ *  @author Ken
+ *  @author Jony
+ **/
+
 package dmsassign3;
 
 import java.awt.FlowLayout;
@@ -17,7 +19,6 @@ import java.util.logging.Logger;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JFrame;
-import static javax.swing.JFrame.EXIT_ON_CLOSE;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
@@ -25,6 +26,7 @@ import javax.swing.JTextField;
 /**
  *
  * @author Ken
+ * @author Jony
  */
 public class Add {
     RMIBooking booking;
@@ -104,9 +106,7 @@ public class Add {
        frame.setSize(400,400);
        frame.add(container);
        frame.setVisible(true);
-       frame.setResizable(true);
-       //frame.setDefaultCloseOperation(EXIT_ON_CLOSE);
-        
+       frame.setResizable(true); 
     }
     
     public void addBooking()

@@ -1,10 +1,14 @@
+/**
+ * Name: RMIBookingImpl.java 
+ * Created: 05.2015 (mm/YYYY)
+ *
+ * @author Ken
+ * @author Jony
+ *
+ */
+
 package dmsassign3;
 
-/**
-   A class that implements a remote object handles bookings from various
-   clients.
-   @author Andrew Ensor
-*/
 import java.rmi.RemoteException;
 import java.util.ArrayList;
 
