@@ -38,6 +38,7 @@ import javax.swing.JButton;
 import javax.swing.JFrame;
 import static javax.swing.JFrame.EXIT_ON_CLOSE;
 import javax.swing.JLabel;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JTextArea;
 import javax.swing.Timer;
@@ -259,76 +260,81 @@ public class Host {
 
         if (successful) {
             // Was able to enter the critial section with the lock
-
-        }
-
-        Add add = new Add(rObject);
-        add.frame.addWindowListener(new java.awt.event.WindowAdapter() {
-            @Override
-            public void windowClosing(java.awt.event.WindowEvent windowEvent) {
+            Add add = new Add(rObject);
+            add.frame.addWindowListener(new java.awt.event.WindowAdapter() {
+                @Override
+                public void windowClosing(java.awt.event.WindowEvent windowEvent) {
                 // Since the user is closing the window we can release the lock
-                // we have
-                boolean successful = false;
-                Socket socket = null;
+                    // we have
+                    boolean successful = false;
+                    Socket socket = null;
 
-                try {
-                    socket = new Socket(leaderIP, SERVER_TCP_PORT);
-                } catch (IOException e) {
-                    System.err.println("Client could not make connection: " + e);
-                }
+                    try {
+                        socket = new Socket(leaderIP, SERVER_TCP_PORT);
+                    } catch (IOException e) {
+                        System.err.println("Client could not make connection: " + e);
+                    }
 
-                PrintWriter pw = null; // output stream to server
-                BufferedReader br = null; // input stream from server
-                try {  // create an autoflush output stream for the socket
-                    pw = new PrintWriter(socket.getOutputStream(), true);
-                    // create a buffered input stream for this socket
-                    br = new BufferedReader(new InputStreamReader(
-                            socket.getInputStream()));
+                    PrintWriter pw = null; // output stream to server
+                    BufferedReader br = null; // input stream from server
+                    try {  // create an autoflush output stream for the socket
+                        pw = new PrintWriter(socket.getOutputStream(), true);
+                        // create a buffered input stream for this socket
+                        br = new BufferedReader(new InputStreamReader(
+                                socket.getInputStream()));
 
-                    String clientRequest;
+                        String clientRequest;
 
                     // start communication by having client connect
-                    // send the Join request which will return the IP of the current leader
-                    clientRequest = "Unlock:" + thisPeer.getPeerID();
-                    pw.println(clientRequest);  // println flushes itself
-                    // then get server response and display it
-                    String[] serverResponse = (br.readLine()).split(":"); // blocking
+                        // send the Join request which will return the IP of the current leader
+                        clientRequest = "Unlock:" + thisPeer.getPeerID();
+                        pw.println(clientRequest);  // println flushes itself
+                        // then get server response and display it
+                        String[] serverResponse = (br.readLine()).split(":"); // blocking
 
-                    System.out.println("Response: " + Arrays.toString(serverResponse));
+                        System.out.println("Response: " + Arrays.toString(serverResponse));
 
-                    if (serverResponse[1].equals("OK")) {
-                        // We have gained critial access to the lock
-                        successful = true;
-                    } else if (serverResponse[1].equals("FAIL")) {
-                        successful = false;
-                    } else {
-                        successful = false;
-                        System.err.println("Weird input from requesting unlock");
-                    }
-
-                    // Send the server the done message
-                    pw.println("DONE");
-
-                } catch (IOException e) {
-                    System.err.println("Client error: " + e);
-                } finally {
-                    try {
-                        if (pw != null) {
-                            pw.close();
+                        if (serverResponse[1].equals("OK")) {
+                            // We have gained critial access to the lock
+                            successful = true;
+                        } else if (serverResponse[1].equals("FAIL")) {
+                            successful = false;
+                        } else {
+                            successful = false;
+                            System.err.println("Weird input from requesting unlock");
                         }
-                        if (br != null) {
-                            br.close();
-                        }
-                        if (socket != null) {
-                            socket.close();
-                        }
+
+                        // Send the server the done message
+                        pw.println("DONE");
+
                     } catch (IOException e) {
-                        System.err.println("Failed to close streams: " + e);
+                        System.err.println("Client error: " + e);
+                    } finally {
+                        try {
+                            if (pw != null) {
+                                pw.close();
+                            }
+                            if (br != null) {
+                                br.close();
+                            }
+                            if (socket != null) {
+                                socket.close();
+                            }
+                        } catch (IOException e) {
+                            System.err.println("Failed to close streams: " + e);
+                        }
                     }
-                }
 
-            }
-        });
+                }
+            });
+        }
+        else
+        {
+            // We could not obtain a lock display an error to the user
+            JOptionPane.showMessageDialog(this.frame, "Can not add a booking because"
+                    + "another process has the lock on the critial section");
+        }
+
     }
 
     private synchronized void updateBookings() {
@@ -478,9 +484,7 @@ public class Host {
                     } else {
                         // Lock is being released
                         for (int f = 0; f < peers.size(); ++f) {
-                            if (peers.get(f).getPeerID() == peerid) {
-                                peers.get(f).setHasLock(false);
-                            }
+                            peers.get(f).setHasLock(false);
                         }
 
                     }
@@ -944,7 +948,7 @@ public class Host {
                         }
                         break;
                     }
-                }                
+                }
                 case "Unlock": {
                     // Client is requesting to unlock access and exit a critial 
                     // section of the code                    
@@ -956,12 +960,12 @@ public class Host {
                             // Lock is being released
                             for (int f = 0; f < peers.size(); ++f) {
                                 peers.get(f).setHasLock(false);
-                            }                            
+                            }
                         } else {
                             // This is a non privledged peer trying to unlock 
                             // the critial section return fail
                             response = "UNLOCK:FAIL";
-                        }  
+                        }
                         peerInfo.setPeers(constructListFormData());
                     } else {
                         // We are not the server we should not be getting 
@@ -1047,237 +1051,237 @@ public class Host {
                     break;
             }
             return response;
-            }
         }
+    }
 
-        // Inner class that handles starting a leader election
-        public class LeaderElection extends Thread {
+    // Inner class that handles starting a leader election
+    public class LeaderElection extends Thread {
 
-            // Set timeouts for connections here
-            @Override
-            public void run() {
-                electionDecided = false;
-                // Initiate leader election
-                System.out.println("Initiating leader election");
+        // Set timeouts for connections here
+        @Override
+        public void run() {
+            electionDecided = false;
+            // Initiate leader election
+            System.out.println("Initiating leader election");
 
-                // Alive messages
-                int aliveCount = 0;
+            // Alive messages
+            int aliveCount = 0;
 
-                // Broadcast an election message to all connected peers that have a higher process ID.
-                for (int i = 0; i < peers.size(); ++i) {
-                    Socket socket = null;
-                    Peer p = peers.get(i);
-                    if (p.getPeerID() > thisPeer.getPeerID()) {
+            // Broadcast an election message to all connected peers that have a higher process ID.
+            for (int i = 0; i < peers.size(); ++i) {
+                Socket socket = null;
+                Peer p = peers.get(i);
+                if (p.getPeerID() > thisPeer.getPeerID()) {
 
-                        try {
-                            socket = new Socket(p.getIpAddress(), Integer.parseInt(p.getPortNumber()));
-                        } catch (IOException f) {
+                    try {
+                        socket = new Socket(p.getIpAddress(), Integer.parseInt(p.getPortNumber()));
+                    } catch (IOException f) {
                         // Double up the try statement and also check the peer with a server
-                            // port incase they won the election before we started
-                            System.err.println("LEADER ELECTION: Client could not make connection to peer(" + p.toString() + "): " + f);
+                        // port incase they won the election before we started
+                        System.err.println("LEADER ELECTION: Client could not make connection to peer(" + p.toString() + "): " + f);
                         // Couldn't connect to this host,  we will just continue and handle
-                            // peer deletion in the checkPeers method
-                            continue;
+                        // peer deletion in the checkPeers method
+                        continue;
+                    }
+
+                    PrintWriter pw = null; // output stream to server
+                    BufferedReader br = null; // input stream from server
+                    try {  // create an autoflush output stream for the socket
+                        pw = new PrintWriter(socket.getOutputStream(), true);
+                        // create a buffered input stream for this socket
+                        br = new BufferedReader(new InputStreamReader(
+                                socket.getInputStream()));
+
+                        String clientRequest;
+
+                        // Handshake with the peer
+                        clientRequest = "ElectionMessage:" + thisPeer.getPeerID();
+                        pw.println(clientRequest);  // println flushes itself
+                        // then get server response and display it
+                        String[] serverResponse = (br.readLine()).split(":"); // blocking
+
+                        System.out.println("Response: " + Arrays.toString(serverResponse));
+
+                        // Send the server the done message
+                        pw.println("DONE");
+
+                        if (serverResponse[0].equals("ALIVE")) {
+                            ++aliveCount;
                         }
 
-                        PrintWriter pw = null; // output stream to server
-                        BufferedReader br = null; // input stream from server
-                        try {  // create an autoflush output stream for the socket
-                            pw = new PrintWriter(socket.getOutputStream(), true);
-                            // create a buffered input stream for this socket
-                            br = new BufferedReader(new InputStreamReader(
-                                    socket.getInputStream()));
+                    } catch (IOException e) {
+                        // This means that we likely have crashed.
+                        System.err.println("Client error: " + e);
 
-                            String clientRequest;
+                    } finally {
+                        try {
+                            if (pw != null) {
+                                pw.close();
+                            }
+                            if (br != null) {
+                                br.close();
+                            }
+                            if (socket != null) {
+                                socket.close();
+                            }
+                        } catch (IOException e) {
+                            System.err.println("Failed to close streams: " + e);
+                        }
+                    }
+                }
+            }
 
-                            // Handshake with the peer
-                            clientRequest = "ElectionMessage:" + thisPeer.getPeerID();
-                            pw.println(clientRequest);  // println flushes itself
-                            // then get server response and display it
-                            String[] serverResponse = (br.readLine()).split(":"); // blocking
+            // Now that we have contacted all our peers
+            if (aliveCount > 0) {
+                isSelfInitiated = true;
+
+                System.out.println("Entering Sleep while we wait for replys");
+                try {
+                    sleep(7500);
+                } catch (InterruptedException ex) {
+                    Logger.getLogger(Host.class.getName()).log(Level.SEVERE, null, ex);
+                }
+
+                System.out.println("Exiting Sleep while we wait for replys");
+
+                // Check to see if the election has been decided\
+                // If there is a new leader ignore
+                boolean newLeader = false;
+                for (int j = 0; j < peers.size(); ++j) {
+                    if (peers.get(j).isIsLeader()) {
+                        newLeader = true;
+                    }
+                }
+
+                System.out.println("New Leader = " + newLeader);
+                if (!newLeader || !electionDecided) {
+                    if (leaderElection == null) {
+                        System.out.println("Calling leader election from leader election alive");
+                        leaderElection = new LeaderElection();
+                        leaderElection.run();
+                    }
+                }
+
+            } else if (aliveCount == 0) {
+                // There are no other peers so elect ourself as leader
+                // Initialise the RMI server
+                isServer = true;
+                stopTCPServ = true;
+                while (serverStopped == false) {
+                    try {
+                        // Loop until the TCP server stops
+                        sleep(100);
+
+                    } catch (InterruptedException ex) {
+                        Logger.getLogger(Host.class
+                                .getName()).log(Level.SEVERE, null, ex);
+                    }
+                }
+
+                boolean initTCPServ = initTCPServ();
+                boolean rmiInit = initRMI();
+                isServer = true;
+                becomeServer();
+
+                System.out.println("We won leader election, become new leader");
+                boolean bully = false;
+
+                for (int i = 0; i < peers.size(); ++i) {
+
+                    Socket socket = null;
+                    Peer p = peers.get(i);
+
+                    System.out.println("Sending LeaderMsg:  (" + p.toString() + ")");
+
+                    if (p.equals(thisPeer)) {
+                        continue;
+                    }
+
+                    try {
+                        socket = new Socket(p.getIpAddress(), Integer.parseInt(p.getPortNumber()));
+                    } catch (IOException e) {
+                        // Server Died as we were sending messages
+
+                        System.err.println("Sending new Leader:  Client could not make connection to peer(" + p.toString() + "): " + e);
+                        continue;
+                    }
+
+                    PrintWriter pw = null; // output stream to server
+                    BufferedReader br = null; // input stream from server
+                    try {  // create an autoflush output stream for the socket
+                        pw = new PrintWriter(socket.getOutputStream(), true);
+                        // create a buffered input stream for this socket
+                        br = new BufferedReader(new InputStreamReader(
+                                socket.getInputStream()));
+
+                        String clientRequest;
+
+                        // Send the new leader message
+                        clientRequest = "LeaderMessage:" + thisPeer.getPeerID() + ":" + thisPeer.getIpAddress();
+                        pw.println(clientRequest);  // println flushes itself
+                        // then get server response and display it
+                        String line = br.readLine();
+                        if (line != null) {
+                            String[] serverResponse = line.split(":"); // blocking
 
                             System.out.println("Response: " + Arrays.toString(serverResponse));
 
-                            // Send the server the done message
-                            pw.println("DONE");
-
-                            if (serverResponse[0].equals("ALIVE")) {
-                                ++aliveCount;
-                            }
-
-                        } catch (IOException e) {
-                            // This means that we likely have crashed.
-                            System.err.println("Client error: " + e);
-
-                        } finally {
-                            try {
-                                if (pw != null) {
-                                    pw.close();
-                                }
-                                if (br != null) {
-                                    br.close();
-                                }
-                                if (socket != null) {
-                                    socket.close();
-                                }
-                            } catch (IOException e) {
-                                System.err.println("Failed to close streams: " + e);
-                            }
-                        }
-                    }
-                }
-
-                // Now that we have contacted all our peers
-                if (aliveCount > 0) {
-                    isSelfInitiated = true;
-
-                    System.out.println("Entering Sleep while we wait for replys");
-                    try {
-                        sleep(7500);
-                    } catch (InterruptedException ex) {
-                        Logger.getLogger(Host.class.getName()).log(Level.SEVERE, null, ex);
-                    }
-
-                    System.out.println("Exiting Sleep while we wait for replys");
-
-                // Check to see if the election has been decided\
-                    // If there is a new leader ignore
-                    boolean newLeader = false;
-                    for (int j = 0; j < peers.size(); ++j) {
-                        if (peers.get(j).isIsLeader()) {
-                            newLeader = true;
-                        }
-                    }
-
-                    System.out.println("New Leader = " + newLeader);
-                    if (!newLeader || !electionDecided) {
-                        if (leaderElection == null) {
-                            System.out.println("Calling leader election from leader election alive");
-                            leaderElection = new LeaderElection();
-                            leaderElection.run();
-                        }
-                    }
-
-                } else if (aliveCount == 0) {
-                // There are no other peers so elect ourself as leader
-                    // Initialise the RMI server
-                    isServer = true;
-                    stopTCPServ = true;
-                    while (serverStopped == false) {
-                        try {
-                            // Loop until the TCP server stops
-                            sleep(100);
-
-                        } catch (InterruptedException ex) {
-                            Logger.getLogger(Host.class
-                                    .getName()).log(Level.SEVERE, null, ex);
-                        }
-                    }
-
-                    boolean initTCPServ = initTCPServ();
-                    boolean rmiInit = initRMI();
-                    isServer = true;
-                    becomeServer();
-
-                    System.out.println("We won leader election, become new leader");
-                    boolean bully = false;
-
-                    for (int i = 0; i < peers.size(); ++i) {
-
-                        Socket socket = null;
-                        Peer p = peers.get(i);
-
-                        System.out.println("Sending LeaderMsg:  (" + p.toString() + ")");
-
-                        if (p.equals(thisPeer)) {
-                            continue;
-                        }
-
-                        try {
-                            socket = new Socket(p.getIpAddress(), Integer.parseInt(p.getPortNumber()));
-                        } catch (IOException e) {
-                            // Server Died as we were sending messages
-
-                            System.err.println("Sending new Leader:  Client could not make connection to peer(" + p.toString() + "): " + e);
-                            continue;
-                        }
-
-                        PrintWriter pw = null; // output stream to server
-                        BufferedReader br = null; // input stream from server
-                        try {  // create an autoflush output stream for the socket
-                            pw = new PrintWriter(socket.getOutputStream(), true);
-                            // create a buffered input stream for this socket
-                            br = new BufferedReader(new InputStreamReader(
-                                    socket.getInputStream()));
-
-                            String clientRequest;
-
-                            // Send the new leader message
-                            clientRequest = "LeaderMessage:" + thisPeer.getPeerID() + ":" + thisPeer.getIpAddress();
-                            pw.println(clientRequest);  // println flushes itself
-                            // then get server response and display it
-                            String line = br.readLine();
-                            if (line != null) {
-                                String[] serverResponse = line.split(":"); // blocking
-
-                                System.out.println("Response: " + Arrays.toString(serverResponse));
-
-                                if (serverResponse[0].equals("Ok-Bully")) {
+                            if (serverResponse[0].equals("Ok-Bully")) {
                                 // A process with a higher ID is bullying us out of 
-                                    // the leader position
-                                    bully = true;
-                                    break;
-                                }
-                            }
-                            // Send the server the done message
-                            pw.println("DONE");
-
-                        } catch (IOException e) {
-                            // This means that we likely have crashed.
-                            System.err.println("Client error: " + e);
-
-                        } finally {
-                            try {
-                                if (pw != null) {
-                                    pw.close();
-                                }
-                                if (br != null) {
-                                    br.close();
-                                }
-                                if (socket != null) {
-                                    socket.close();
-                                }
-                            } catch (IOException e) {
-                                System.err.println("Failed to close streams: " + e);
+                                // the leader position
+                                bully = true;
+                                break;
                             }
                         }
-                    }
+                        // Send the server the done message
+                        pw.println("DONE");
 
-                    if (!bully) {
+                    } catch (IOException e) {
+                        // This means that we likely have crashed.
+                        System.err.println("Client error: " + e);
 
+                    } finally {
+                        try {
+                            if (pw != null) {
+                                pw.close();
+                            }
+                            if (br != null) {
+                                br.close();
+                            }
+                            if (socket != null) {
+                                socket.close();
+                            }
+                        } catch (IOException e) {
+                            System.err.println("Failed to close streams: " + e);
+                        }
                     }
-                    leaderElection = null;
+                }
+
+                if (!bully) {
 
                 }
-            }
-        }
+                leaderElection = null;
 
-        public void becomeServer() {
-            isServerLabel.setText("Server");
-            leaderIP = ourIP;
-            for (int i = 0; i < peers.size(); ++i) {
-                if (peers.get(i).equals(thisPeer)) {
-                    peers.get(i).setPortNumber(String.valueOf(SERVER_TCP_PORT));
-                    peers.get(i).setIsLeader(true);
-                }
             }
-            try {
-                rObject.setBookings(bookings);
-
-            } catch (RemoteException ex) {
-                Logger.getLogger(Host.class
-                        .getName()).log(Level.SEVERE, null, ex);
-            }
-
         }
     }
+
+    public void becomeServer() {
+        isServerLabel.setText("Server");
+        leaderIP = ourIP;
+        for (int i = 0; i < peers.size(); ++i) {
+            if (peers.get(i).equals(thisPeer)) {
+                peers.get(i).setPortNumber(String.valueOf(SERVER_TCP_PORT));
+                peers.get(i).setIsLeader(true);
+            }
+        }
+        try {
+            rObject.setBookings(bookings);
+
+        } catch (RemoteException ex) {
+            Logger.getLogger(Host.class
+                    .getName()).log(Level.SEVERE, null, ex);
+        }
+
+    }
+}
