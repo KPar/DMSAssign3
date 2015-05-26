@@ -886,14 +886,18 @@ public class Host {
             if (aliveCount > 0) {
                 isSelfInitiated = true;
 
+                System.out.println("Entering Sleep while we wait for replys");
                 try {
                     sleep(7500);
                 } catch (InterruptedException ex) {
                     Logger.getLogger(Host.class.getName()).log(Level.SEVERE, null, ex);
                 }
+                
+                System.out.println("Exiting Sleep while we wait for replys");
 
                 // Check to see if the election has been decided\
                 // If there is a new leader ignore
+                
                 boolean newLeader = false;
                 for (int j = 0; j < peers.size(); ++j) {
                     if (thisPeer.isIsLeader()) {
@@ -901,6 +905,7 @@ public class Host {
                     }
                 }
 
+                System.out.println("New Leader = "+newLeader);
                 if (!newLeader) {
                     if (leaderElection == null) {
                         leaderElection = new LeaderElection();
