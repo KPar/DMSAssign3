@@ -284,8 +284,7 @@ public class Host {
                         }
 
                         if (!newLeader) {
-                            if(leaderElection == null)
-                            {
+                            if (leaderElection == null) {
                                 leaderElection = new LeaderElection();
                                 leaderElection.run();
                             }
@@ -312,16 +311,13 @@ public class Host {
                 String serverResponse = br.readLine(); // blocking
 
                 System.out.println("PING Response: " + serverResponse);
-                if(serverResponse != null)
-                {
-                if (serverResponse.equals("PONG")) {
-                    // Correct response from pinging server
+                if (serverResponse != null) {
+                    if (serverResponse.equals("PONG")) {
+                        // Correct response from pinging server
+                    } else {
+                        // Incorrect response from pinging server
+                    }
                 } else {
-                    // Incorrect response from pinging server
-                }
-                }
-                else
-                {
                     // We must of lost connection during our transmission
                     // Try the connection another time.
                     continue;
@@ -742,7 +738,7 @@ public class Host {
                     response = "HANDSHAKEOk";
                     break;
                 }
-                case "PING": {                    
+                case "PING": {
                     response = "PONG";
                     break;
                 }
@@ -890,24 +886,27 @@ public class Host {
             if (aliveCount > 0) {
                 isSelfInitiated = true;
 
-                long loopCount = 0;
-                while (!electionDecided && loopCount < 10000) {
-                    // We never received any messages restart leader election let this 
-                    // thread die
-
-                    try {
-                        sleep(500);
-                    } catch (InterruptedException ex) {
-                        Logger.getLogger(Host.class.getName()).log(Level.SEVERE, null, ex);
-                    }
-                    loopCount += 500;
+                try {
+                    wait(7500);
+                } catch (InterruptedException ex) {
+                    Logger.getLogger(Host.class.getName()).log(Level.SEVERE, null, ex);
                 }
 
-               // if (!electionDecided) {
-                //    leaderElection = new LeaderElection();
-                //    leaderElection.run();
-                //    electionDecided = false;
-               // }
+                // Check to see if the election has been decided\
+                // If there is a new leader ignore
+                boolean newLeader = false;
+                for (int j = 0; j < peers.size(); ++j) {
+                    if (thisPeer.isIsLeader()) {
+                        newLeader = true;
+                    }
+                }
+
+                if (!newLeader) {
+                    if (leaderElection == null) {
+                        leaderElection = new LeaderElection();
+                        leaderElection.run();
+                    }
+                }
 
             } else if (aliveCount == 0) {
                 // There are no other peers so elect ourself as leader
@@ -931,11 +930,11 @@ public class Host {
                 boolean bully = false;
 
                 for (int i = 0; i < peers.size(); ++i) {
-                    
+
                     Socket socket = null;
                     Peer p = peers.get(i);
-                    
-                    System.out.println("Sending LeaderMsg:  Client could not make connection to peer(" + p.toString() +")");
+
+                    System.out.println("Sending LeaderMsg:  Client could not make connection to peer(" + p.toString() + ")");
 
                     if (p.equals(thisPeer)) {
                         continue;
