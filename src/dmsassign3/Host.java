@@ -284,7 +284,7 @@ public class Host {
                             }
                         }
 
-                        if (!newLeader) {
+                        if (!newLeader || !electionDecided) {
                             if (leaderElection == null) {
                                 System.out.println("Calling leader election from check connection after detail");
                                 leaderElection = new LeaderElection();
