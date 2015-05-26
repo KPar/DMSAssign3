@@ -52,7 +52,7 @@ public class Host {
     // on the same host.
     boolean isServer;
     static public final int CLIENT_TCP_PORT = 14200;
-    static public final int SERVER_TCP_PORT = 14201;
+    static public final int SERVER_TCP_PORT = 14200;
 
     // Hold a reference to the remote object
     RMIBooking rObject;
@@ -1025,7 +1025,7 @@ public class Host {
         leaderIP = ourIP;
         for (int i = 0; i < peers.size(); ++i) {
             if (peers.get(i).equals(thisPeer)) {
-                peers.get(i).setPortNumber("14201");
+                peers.get(i).setPortNumber(String.valueOf(SERVER_TCP_PORT));
                 peers.get(i).setIsLeader(true);
             }
         }
