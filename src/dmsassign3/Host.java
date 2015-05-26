@@ -256,7 +256,7 @@ public class Host {
                     // handle the the election
                     boolean highestID = true;
                     for (int j = 0; j < peers.size(); ++j) {
-                        if (thisPeer.getPeerID() < peers.get(i).getPeerID()) {
+                        if (thisPeer.getPeerID() < peers.get(j).getPeerID()) {
                             highestID = false;
                         }
                     }
