@@ -1029,7 +1029,7 @@ public class Host {
                 peers.get(i).setIsLeader(true);
             }
         }
-        try {
+        try {  
             rObject.setBookings(bookings);
 
         } catch (RemoteException ex) {
