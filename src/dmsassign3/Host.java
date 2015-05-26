@@ -263,6 +263,7 @@ public class Host {
 
                     if (highestID) {
                         if (leaderElection == null) {
+                            System.out.println("Calling leader election from check connection after detail highest id");
                             leaderElection = new LeaderElection();
                             leaderElection.run();
                         }
@@ -285,6 +286,7 @@ public class Host {
 
                         if (!newLeader) {
                             if (leaderElection == null) {
+                                System.out.println("Calling leader election from check connection after detail");
                                 leaderElection = new LeaderElection();
                                 leaderElection.run();
                             }
@@ -752,6 +754,7 @@ public class Host {
                         // Our peerID is larger initiate a new leader election
                         // Only start a new leader election if we havnt allready started an election.
                         if (leaderElection == null) {
+                            System.out.println("Calling leader election from Election message request");
                             leaderElection = new LeaderElection();
                             leaderElection.run();
                         }
@@ -767,7 +770,7 @@ public class Host {
 
                     if (thisPeer.getPeerID() > proposingPeerID) {
                         // Our peerID is larger initiate a new leader election
-
+                        System.out.println("Calling leader election from LeaderMessage bully");
                         leaderElection = new LeaderElection();
                         leaderElection.run();
                         response = "Ok-Bully";
@@ -907,6 +910,7 @@ public class Host {
                 System.out.println("New Leader = " + newLeader);
                 if (!newLeader || !electionDecided) {
                     if (leaderElection == null) {
+                        System.out.println("Calling leader election from leader election alive");
                         leaderElection = new LeaderElection();
                         leaderElection.run();
                     }
