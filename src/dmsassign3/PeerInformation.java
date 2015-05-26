@@ -46,7 +46,7 @@ public class PeerInformation {
 
         p1.add(peers);
 
-        frame.setSize(400, 400);
+        frame.setSize(525, 350);
         frame.add(p1);
         frame.setVisible(true);
         frame.setResizable(true);

@@ -110,7 +110,7 @@ public class Add {
     }
     
     public void addBooking()
-    {
+    {       
         try {
             booking.addBooking(nameLabel.getText(), checkindate.getText(), 1);
         } catch (RemoteException ex) {

@@ -17,6 +17,7 @@ class Peer {
     private String portNumber = "";
     private int peerID = -1;
     private boolean isLeader = false;
+    private boolean hasLock = false;
 
     public Peer(String ipAddress, String portNumber, int peerID, boolean isLeader) {
          this.ipAddress = ipAddress;
@@ -24,6 +25,14 @@ class Peer {
          this.peerID = peerID;
          this.isLeader = isLeader;
     }
+
+    public boolean hasLock() {
+        return hasLock;
+    }
+
+    public void setHasLock(boolean hasLock) {
+        this.hasLock = hasLock;
+    }        
 
     public String getIpAddress() {
         return ipAddress;
