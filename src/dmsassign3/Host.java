@@ -472,6 +472,7 @@ public class Host {
                     pw.println(leaderRequest);  // println flushes itself
                     // then get server response and display it
                     String leaderResponse = br.readLine(); // blocking
+                    System.out.println("LEADER Response: " + leaderResponse);
                     String[] resultCode = leaderResponse.split(":");
                     int peerid = Integer.parseInt(resultCode[1]);
                     if (peerid != -1) {
@@ -955,7 +956,7 @@ public class Host {
                     if (isServer) {
                         if (lock == Integer.parseInt(tokens[1])) {
                             // Current privledged peer is requesting unlock
-                            lock = Integer.parseInt(tokens[1]);
+                            lock = -1;
                             response = "UNLOCK:OK";
                             // Lock is being released
                             for (int f = 0; f < peers.size(); ++f) {
