@@ -905,7 +905,7 @@ public class Host {
                 }
 
                 System.out.println("New Leader = " + newLeader);
-                if (!newLeader) {
+                if (!newLeader || !electionDecided) {
                     if (leaderElection == null) {
                         leaderElection = new LeaderElection();
                         leaderElection.run();
