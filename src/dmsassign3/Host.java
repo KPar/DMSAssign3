@@ -887,7 +887,7 @@ public class Host {
                 isSelfInitiated = true;
 
                 try {
-                    wait(7500);
+                    sleep(7500);
                 } catch (InterruptedException ex) {
                     Logger.getLogger(Host.class.getName()).log(Level.SEVERE, null, ex);
                 }
