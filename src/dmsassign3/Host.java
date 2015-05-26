@@ -270,7 +270,7 @@ public class Host {
                         try {
                             // Wait a time for another process to handle the message
                             System.out.println("Waiting...");
-                            wait(10000);
+                            sleep(10000);
                         } catch (InterruptedException ex) {
                             Logger.getLogger(Host.class.getName()).log(Level.SEVERE, null, ex);
                         }
